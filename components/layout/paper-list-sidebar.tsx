@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -7,47 +8,53 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, ThumbsUp, ClipboardList, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Paper } from '@/types/database';
 
 interface PaperListSidebarProps {
   selectedPaperId: string | null;
   onSelectPaper: (id: string) => void;
 }
 
-// 임시 더미 데이터
-const dummyPapers = [
-  {
-    id: '1',
-    title: 'AI 기반 과학적 발견의 새로운 패러다임',
-    authors: ['김철수', '이영희'],
-    tags: ['AI', '과학'],
-    vote_count: 42,
-    survey_count: 15,
-    file_type: 'pdf' as const,
-  },
-  {
-    id: '2',
-    title: '딥러닝을 활용한 신약 개발 가속화',
-    authors: ['박민수'],
-    tags: ['딥러닝', '제약'],
-    vote_count: 38,
-    survey_count: 12,
-    file_type: 'docx' as const,
-  },
-  {
-    id: '3',
-    title: '기후 변화 예측을 위한 머신러닝 모델',
-    authors: ['정수연', '최동욱'],
-    tags: ['ML', '기후'],
-    vote_count: 25,
-    survey_count: 8,
-    file_type: 'pdf' as const,
-  },
-];
-
 export function PaperListSidebar({
   selectedPaperId,
   onSelectPaper,
 }: PaperListSidebarProps) {
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchPapers = async () => {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set('search', search);
+        if (selectedTag) params.append('tags', selectedTag);
+        params.set('limit', '100');
+
+        const response = await fetch(`/api/v1/papers?${params}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setPapers(data.data.papers);
+          // Extract unique tags
+          const allTags = data.data.papers.flatMap((p: Paper) => p.tags || []);
+          const uniqueTags = [...new Set(allTags)] as string[];
+          setTags(uniqueTags.slice(0, 10));
+        }
+      } catch (error) {
+        console.error('Error fetching papers:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchPapers, 300);
+    return () => clearTimeout(debounce);
+  }, [search, selectedTag]);
+
   return (
     <aside className="w-72 shrink-0 border-r bg-sidebar hidden lg:block">
       <div className="p-4 space-y-4">
@@ -58,29 +65,45 @@ export function PaperListSidebar({
             type="text"
             placeholder="필터..."
             className="pl-9 h-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         {/* 태그 필터 */}
         <div className="flex flex-wrap gap-1">
-          <Badge variant="secondary" className="cursor-pointer hover:bg-secondary/80">
+          <Badge
+            variant={selectedTag === null ? 'secondary' : 'outline'}
+            className="cursor-pointer hover:bg-secondary/80"
+            onClick={() => setSelectedTag(null)}
+          >
             전체
           </Badge>
-          <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-            AI
-          </Badge>
-          <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-            딥러닝
-          </Badge>
-          <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-            ML
-          </Badge>
+          {tags.map((tag) => (
+            <Badge
+              key={tag}
+              variant={selectedTag === tag ? 'secondary' : 'outline'}
+              className="cursor-pointer hover:bg-accent"
+              onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+            >
+              {tag}
+            </Badge>
+          ))}
         </div>
       </div>
 
       <ScrollArea className="h-[calc(100vh-3.5rem-8rem)]">
         <div className="p-4 pt-0 space-y-2">
-          {dummyPapers.map((paper) => (
+          {isLoading ? (
+            [...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))
+          ) : papers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              논문이 없습니다.
+            </p>
+          ) : (
+            papers.map((paper) => (
             <Card
               key={paper.id}
               className={cn(
@@ -120,7 +143,8 @@ export function PaperListSidebar({
                 </div>
               </div>
             </Card>
-          ))}
+          ))
+          )}
         </div>
       </ScrollArea>
     </aside>

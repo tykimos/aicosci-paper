@@ -36,3 +36,4 @@ next-env.d.ts
 
 # Reference project
 ref/
+.env*.local
