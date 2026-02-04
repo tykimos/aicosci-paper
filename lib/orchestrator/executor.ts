@@ -10,30 +10,29 @@ import type {
 } from './types';
 import { SKILL_PROMPTS, EXECUTION_BASE_PROMPT } from './prompts';
 
-// Azure OpenAI configuration
-const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
-const AZURE_OPENAI_API_KEY = process.env.AZURE_OPENAI_API_KEY;
-const AZURE_OPENAI_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-5.2-chat';
-const AZURE_OPENAI_API_VERSION = process.env.AZURE_OPENAI_API_VERSION || '2024-04-01-preview';
+// Get Azure OpenAI configuration at runtime
+function getAzureConfig() {
+  return {
+    endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+    apiKey: process.env.AZURE_OPENAI_API_KEY,
+    deployment: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-5.2-chat',
+    apiVersion: process.env.AZURE_OPENAI_API_VERSION || '2024-04-01-preview',
+  };
+}
 
 // Initialize Azure OpenAI client
 function getAzureClient(): AzureOpenAI | null {
-  console.log('[Executor] Checking Azure config:', {
-    hasEndpoint: !!AZURE_OPENAI_ENDPOINT,
-    hasApiKey: !!AZURE_OPENAI_API_KEY,
-    deployment: AZURE_OPENAI_DEPLOYMENT,
-    apiVersion: AZURE_OPENAI_API_VERSION,
-  });
+  const config = getAzureConfig();
 
-  if (!AZURE_OPENAI_ENDPOINT || !AZURE_OPENAI_API_KEY) {
+  if (!config.endpoint || !config.apiKey) {
     console.error('[Executor] Azure OpenAI not configured - missing endpoint or API key');
     return null;
   }
 
   return new AzureOpenAI({
-    endpoint: AZURE_OPENAI_ENDPOINT,
-    apiKey: AZURE_OPENAI_API_KEY,
-    apiVersion: AZURE_OPENAI_API_VERSION,
+    endpoint: config.endpoint,
+    apiKey: config.apiKey,
+    apiVersion: config.apiVersion,
   });
 }
 
@@ -155,7 +154,7 @@ export async function executeSkill(
     const messages = buildMessages(skillId, contextPack, userMessage, history);
 
     const response = await client.chat.completions.create({
-      model: AZURE_OPENAI_DEPLOYMENT,
+      model: getAzureConfig().deployment,
       messages,
       temperature: 0.7,
       max_completion_tokens: 2000,
@@ -224,7 +223,7 @@ export async function executeSkillStream(
     async start(controller) {
       try {
         const stream = await client.chat.completions.create({
-          model: AZURE_OPENAI_DEPLOYMENT,
+          model: getAzureConfig().deployment,
           messages,
           temperature: 0.7,
           max_completion_tokens: 2000,
