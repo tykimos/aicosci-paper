@@ -1,0 +1,46 @@
+{
+  "skills": [
+    {
+      "skill_id": "greeting",
+      "description": "사이트 방문 시 인사 및 안내",
+      "triggers": ["site_enter", "first_visit"],
+      "requires": ["user_state"],
+      "budget": { "context_tokens": 2000, "history_turns": 2 }
+    },
+    {
+      "skill_id": "paper_search",
+      "description": "논문 검색 (키워드 + 벡터)",
+      "triggers": ["search_query", "user_question"],
+      "requires": ["vector_search", "keyword_search"],
+      "budget": { "context_tokens": 4000, "search_topk": 10, "history_turns": 4 }
+    },
+    {
+      "skill_id": "paper_explain",
+      "description": "선택된 논문 요약 및 설명",
+      "triggers": ["paper_select", "paper_open", "explain_request"],
+      "requires": ["paper_chunks", "paper_metadata"],
+      "budget": { "context_tokens": 8000, "history_turns": 4 }
+    },
+    {
+      "skill_id": "survey_complete",
+      "description": "설문 완료 축하 및 논문 추천",
+      "triggers": ["survey_submitted"],
+      "requires": ["survey_responses", "vector_search"],
+      "budget": { "context_tokens": 4000, "candidates_topk": 5, "history_turns": 2 }
+    },
+    {
+      "skill_id": "recommend_next",
+      "description": "다음 논문 추천",
+      "triggers": ["paper_read_complete", "ask_recommendation"],
+      "requires": ["reading_history", "vector_search"],
+      "budget": { "context_tokens": 4000, "candidates_topk": 5, "history_turns": 4 }
+    },
+    {
+      "skill_id": "general_chat",
+      "description": "일반 대화 및 질문 응답",
+      "triggers": ["default"],
+      "requires": ["conversation_history"],
+      "budget": { "context_tokens": 3000, "history_turns": 6 }
+    }
+  ]
+}

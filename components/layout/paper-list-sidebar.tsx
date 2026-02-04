@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ThumbsUp, ClipboardList, FileText, GripVertical } from 'lucide-react';
+import { Search, ThumbsUp, ClipboardList, FileText, GripVertical, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
 import type { Paper } from '@/types/database';
 
 interface PaperListSidebarProps {
@@ -30,7 +31,11 @@ export function PaperListSidebar({
   const [tags, setTags] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+  const [showViewedOnly, setShowViewedOnly] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
+
+  const { isViewed, markAsViewed, viewedCount } = useViewedPapers();
+  const { isSurveyCompleted } = useCompletedSurveys();
 
   useEffect(() => {
     const fetchPapers = async () => {
@@ -61,6 +66,16 @@ export function PaperListSidebar({
     const debounce = setTimeout(fetchPapers, 300);
     return () => clearTimeout(debounce);
   }, [search, selectedTag]);
+
+  // Mark paper as viewed when selected
+  useEffect(() => {
+    if (selectedPaperId) {
+      const paper = papers.find((p) => p.id === selectedPaperId);
+      if (paper) {
+        markAsViewed(selectedPaperId, paper.title);
+      }
+    }
+  }, [selectedPaperId, papers, markAsViewed]);
 
   const startResizing = useCallback(() => {
     setIsResizing(true);
@@ -93,6 +108,11 @@ export function PaperListSidebar({
     };
   }, [isResizing, resize, stopResizing]);
 
+  // Filter papers based on viewed status
+  const filteredPapers = showViewedOnly
+    ? papers.filter((p) => isViewed(p.id))
+    : papers;
+
   return (
     <aside
       ref={sidebarRef}
@@ -115,20 +135,37 @@ export function PaperListSidebar({
         {/* 태그 필터 */}
         <div className="flex flex-wrap gap-1 overflow-hidden">
           <Badge
-            variant={selectedTag === null ? 'secondary' : 'outline'}
+            variant={selectedTag === null && !showViewedOnly ? 'secondary' : 'outline'}
             className="cursor-pointer hover:bg-secondary/80 shrink-0"
-            onClick={() => setSelectedTag(null)}
+            onClick={() => {
+              setSelectedTag(null);
+              setShowViewedOnly(false);
+            }}
           >
             전체
+          </Badge>
+          <Badge
+            variant={showViewedOnly ? 'secondary' : 'outline'}
+            className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1"
+            onClick={() => {
+              setShowViewedOnly(!showViewedOnly);
+              if (!showViewedOnly) setSelectedTag(null);
+            }}
+          >
+            <Eye className="h-3 w-3" />
+            읽음 ({viewedCount})
           </Badge>
           {tags.map((tag) => (
             <Badge
               key={tag}
               variant={selectedTag === tag ? 'secondary' : 'outline'}
               className="cursor-pointer hover:bg-accent shrink-0 max-w-[120px] truncate"
-              onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+              onClick={() => {
+                setSelectedTag(tag === selectedTag ? null : tag);
+                setShowViewedOnly(false);
+              }}
             >
-              {tag}
+              #{tag}
             </Badge>
           ))}
         </div>
@@ -140,58 +177,86 @@ export function PaperListSidebar({
             [...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-24 w-full" />
             ))
-          ) : papers.length === 0 ? (
+          ) : filteredPapers.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              논문이 없습니다.
+              {showViewedOnly ? '읽은 논문이 없습니다.' : '논문이 없습니다.'}
             </p>
           ) : (
-            papers.map((paper) => (
-              <Card
-                key={paper.id}
-                className={cn(
-                  'p-3 cursor-pointer transition-colors hover:bg-accent/50 overflow-hidden',
-                  selectedPaperId === paper.id && 'bg-accent border-primary'
-                )}
-                onClick={() => onSelectPaper(paper.id)}
-              >
-                <div className="space-y-2 min-w-0">
-                  <div className="flex items-start gap-2 min-w-0">
-                    <FileText className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <h3 className="text-sm font-medium line-clamp-2 leading-tight break-words min-w-0">
-                      {paper.title}
-                    </h3>
-                  </div>
-                  {paper.authors.length > 0 && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {paper.authors.join(', ')}
-                    </p>
+            filteredPapers.map((paper) => {
+              const viewed = isViewed(paper.id);
+              const surveyed = isSurveyCompleted(paper.id);
+
+              return (
+                <Card
+                  key={paper.id}
+                  className={cn(
+                    'p-3 cursor-pointer transition-colors hover:bg-accent/50 overflow-hidden relative',
+                    selectedPaperId === paper.id && 'bg-accent border-primary',
+                    viewed && 'border-l-2 border-l-blue-500'
                   )}
-                  <div className="flex items-center justify-between gap-2 min-w-0">
-                    <div className="flex gap-1 min-w-0 overflow-hidden flex-1">
-                      {paper.tags.slice(0, 2).map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-xs px-1.5 py-0 shrink-0 max-w-[80px] truncate"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
+                  onClick={() => onSelectPaper(paper.id)}
+                >
+                  {/* Viewed indicator */}
+                  {viewed && (
+                    <div className="absolute top-2 right-2">
+                      <Eye className="h-3 w-3 text-blue-500" />
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                      <span className="flex items-center gap-0.5">
-                        <ThumbsUp className="h-3 w-3" />
-                        {paper.vote_count}
-                      </span>
-                      <span className="flex items-center gap-0.5">
-                        <ClipboardList className="h-3 w-3" />
-                        {paper.survey_count}
-                      </span>
+                  )}
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex items-start gap-2 min-w-0 pr-4">
+                      <FileText className={cn(
+                        'h-4 w-4 mt-0.5 shrink-0',
+                        viewed ? 'text-blue-500' : 'text-muted-foreground'
+                      )} />
+                      <h3 className={cn(
+                        'text-sm font-medium line-clamp-2 leading-tight break-words min-w-0',
+                        viewed && 'text-muted-foreground'
+                      )}>
+                        {paper.title}
+                      </h3>
+                    </div>
+                    {paper.authors.length > 0 && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {paper.authors.join(', ')}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="flex gap-1 min-w-0 overflow-hidden flex-1">
+                        {paper.tags.slice(0, 2).map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant={selectedTag === tag ? 'default' : 'secondary'}
+                            className="text-xs px-1.5 py-0 shrink-0 max-w-[80px] truncate cursor-pointer hover:bg-accent transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTag(tag === selectedTag ? null : tag);
+                              setShowViewedOnly(false);
+                            }}
+                          >
+                            #{tag}
+                          </Badge>
+                        ))}
+                        {surveyed && (
+                          <Badge variant="outline" className="text-xs px-1.5 py-0 shrink-0 text-green-600 border-green-600">
+                            설문완료
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                        <span className="flex items-center gap-0.5">
+                          <ThumbsUp className="h-3 w-3" />
+                          {paper.vote_count}
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <ClipboardList className="h-3 w-3" />
+                          {paper.survey_count}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </div>
       </ScrollArea>

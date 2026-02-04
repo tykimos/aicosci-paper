@@ -80,6 +80,78 @@ export interface SiteSetting {
   updated_at: string;
 }
 
+export interface PaperSummary {
+  id: string;
+  paper_id: string;
+  summary: string;
+  key_points: string[];
+  methodology?: string;
+  results?: string;
+  conclusion?: string;
+  language: string;
+  created_at: string;
+}
+
+export interface ChatSession {
+  id: string;
+  session_id: string;
+  messages: Message[];
+  current_skill_id?: string;
+  signals?: ExecutionSignals;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaperReadProgress {
+  id: string;
+  session_id: string;
+  paper_id: string;
+  scroll_percentage: number;
+  read_complete: boolean;
+  time_spent_seconds: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaperChunk {
+  id: string;
+  paper_id: string;
+  chunk_index: number;
+  content: string;
+  embedding: number[] | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: string;
+  papers?: Paper[];
+}
+
+export interface ExecutionSignals {
+  coverage: 'enough' | 'partial' | 'none';
+  confidence: 'high' | 'medium' | 'low';
+  search_performed?: boolean;
+  papers_found?: number;
+  summary_generated?: boolean;
+  recommendation_ready?: boolean;
+  next_action_hint: 'stop' | 'reroute' | 'wait_user';
+  suggested_skill_id?: string;
+  prompt_buttons?: string[];
+}
+
+export type TriggerEvent =
+  | 'site_enter'
+  | 'paper_select'
+  | 'paper_open'
+  | 'paper_read_complete'
+  | 'survey_submitted'
+  | 'search_query'
+  | 'user_message'
+  | 'ask_recommendation';
+
 // Database 타입 (Supabase 용)
 export interface Database {
   public: {
@@ -124,6 +196,45 @@ export interface Database {
         Insert: Omit<SiteSetting, 'id' | 'updated_at'>;
         Update: Partial<Omit<SiteSetting, 'id'>>;
       };
+      paper_summaries: {
+        Row: PaperSummary;
+        Insert: Omit<PaperSummary, 'id' | 'created_at'>;
+        Update: Partial<Omit<PaperSummary, 'id' | 'created_at'>>;
+      };
+      chat_sessions: {
+        Row: ChatSession;
+        Insert: Omit<ChatSession, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ChatSession, 'id' | 'created_at'>>;
+      };
+      paper_read_progress: {
+        Row: PaperReadProgress;
+        Insert: Omit<PaperReadProgress, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<PaperReadProgress, 'id' | 'created_at'>>;
+      };
+      paper_chunks: {
+        Row: PaperChunk;
+        Insert: Omit<PaperChunk, 'id' | 'created_at'>;
+        Update: Partial<Omit<PaperChunk, 'id' | 'created_at'>>;
+      };
     };
+    Functions: {
+      match_paper_chunks: {
+        Args: {
+          query_embedding: string;
+          match_threshold: number;
+          match_count: number;
+        };
+        Returns: {
+          id: string;
+          paper_id: string;
+          chunk_index: number;
+          content: string;
+          metadata: Record<string, unknown>;
+          similarity: number;
+        }[];
+      };
+    };
+    Views: Record<string, never>;
+    Enums: Record<string, never>;
   };
 }
