@@ -73,9 +73,13 @@ export function ChatInterface({
         },
         body: JSON.stringify({
           message: messageText,
-          paperId,
-          sessionId,
-          history: messages.slice(-5), // Send last 5 messages for context
+          paper_context: paperId ? { paper_id: paperId } : undefined,
+          session_id: sessionId,
+          stream: true,
+          history: messages.slice(-5).map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
         }),
       });
 
@@ -113,15 +117,28 @@ export function ChatInterface({
           try {
             const parsed = JSON.parse(data);
 
-            if (parsed.content) {
+            // Handle streaming format: { type: 'content', data: string }
+            if (parsed.type === 'content' && parsed.data) {
+              assistantMessage.content += parsed.data;
+              setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
+            }
+            // Also handle legacy format: { content: string }
+            else if (parsed.content && typeof parsed.content === 'string') {
               assistantMessage.content += parsed.content;
               setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
             }
 
+            // Handle paper search results
             if (parsed.papers) {
               assistantMessage.papers = parsed.papers;
               setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
               onSearchResults(parsed.papers);
+            }
+
+            // Handle error
+            if (parsed.type === 'error') {
+              assistantMessage.content = parsed.data?.message || '오류가 발생했습니다.';
+              setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
             }
           } catch (e) {
             console.error('Failed to parse SSE data:', e);

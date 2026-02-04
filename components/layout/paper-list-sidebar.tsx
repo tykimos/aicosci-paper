@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ThumbsUp, ClipboardList, FileText, GripVertical, Eye } from 'lucide-react';
+import { Search, ClipboardList, FileText, GripVertical, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
 import type { Paper } from '@/types/database';
@@ -185,68 +185,80 @@ export function PaperListSidebar({
             filteredPapers.map((paper) => {
               const viewed = isViewed(paper.id);
               const surveyed = isSurveyCompleted(paper.id);
+              const isSelected = selectedPaperId === paper.id;
 
               return (
                 <Card
                   key={paper.id}
                   className={cn(
-                    'p-3 cursor-pointer transition-colors hover:bg-accent/50 overflow-hidden relative',
-                    selectedPaperId === paper.id && 'bg-accent border-primary',
-                    viewed && 'border-l-2 border-l-blue-500'
+                    'group relative overflow-hidden cursor-pointer transition-all duration-200',
+                    'border border-border/50 hover:border-border',
+                    'hover:shadow-md hover:shadow-primary/5',
+                    isSelected && 'bg-primary/5 border-primary/50 shadow-sm',
+                    viewed && 'border-l-[3px] border-l-blue-500',
+                    !isSelected && !viewed && 'hover:bg-accent/30'
                   )}
                   onClick={() => onSelectPaper(paper.id)}
                 >
-                  {/* Viewed indicator */}
-                  {viewed && (
-                    <div className="absolute top-2 right-2">
-                      <Eye className="h-3 w-3 text-blue-500" />
-                    </div>
-                  )}
-                  <div className="space-y-2 min-w-0">
-                    <div className="flex items-start gap-2 min-w-0 pr-4">
-                      <FileText className={cn(
-                        'h-4 w-4 mt-0.5 shrink-0',
-                        viewed ? 'text-blue-500' : 'text-muted-foreground'
-                      )} />
-                      <h3 className={cn(
-                        'text-sm font-medium line-clamp-2 leading-tight break-words min-w-0',
-                        viewed && 'text-muted-foreground'
+                  <div className="p-3 space-y-2.5">
+                    {/* Header with title and status */}
+                    <div className="flex items-start gap-2.5">
+                      <div className={cn(
+                        'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
+                        isSelected ? 'bg-primary/10' : 'bg-muted/50 group-hover:bg-muted'
                       )}>
-                        {paper.title}
-                      </h3>
+                        <FileText className={cn(
+                          'h-4 w-4',
+                          isSelected ? 'text-primary' : viewed ? 'text-blue-500' : 'text-muted-foreground'
+                        )} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={cn(
+                          'text-sm font-medium line-clamp-2 leading-snug',
+                          isSelected ? 'text-foreground' : viewed ? 'text-muted-foreground' : 'text-foreground'
+                        )}>
+                          {paper.title}
+                        </h3>
+                        {paper.authors.length > 0 && (
+                          <p className="text-xs text-muted-foreground/80 truncate mt-1">
+                            {paper.authors.slice(0, 3).join(', ')}{paper.authors.length > 3 && ' ...'}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    {paper.authors.length > 0 && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {paper.authors.join(', ')}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between gap-2 min-w-0">
-                      <div className="flex gap-1 min-w-0 overflow-hidden flex-1">
+
+                    {/* Tags and stats */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
                         {paper.tags.slice(0, 2).map((tag) => (
                           <Badge
                             key={tag}
-                            variant={selectedTag === tag ? 'default' : 'secondary'}
-                            className="text-xs px-1.5 py-0 shrink-0 max-w-[80px] truncate cursor-pointer hover:bg-accent transition-colors"
+                            variant={selectedTag === tag ? 'default' : 'outline'}
+                            className={cn(
+                              'text-[10px] px-1.5 py-0 h-5 shrink-0 max-w-[70px] truncate cursor-pointer transition-colors',
+                              selectedTag !== tag && 'hover:bg-accent border-border/50'
+                            )}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedTag(tag === selectedTag ? null : tag);
                               setShowViewedOnly(false);
                             }}
                           >
-                            #{tag}
+                            {tag}
                           </Badge>
                         ))}
-                        {surveyed && (
-                          <Badge variant="outline" className="text-xs px-1.5 py-0 shrink-0 text-green-600 border-green-600">
-                            설문완료
-                          </Badge>
-                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                        <span className="flex items-center gap-0.5">
-                          <ThumbsUp className="h-3 w-3" />
-                          {paper.vote_count}
-                        </span>
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground shrink-0">
+                        {viewed && (
+                          <span className="flex items-center gap-0.5 text-blue-500">
+                            <Eye className="h-3 w-3" />
+                          </span>
+                        )}
+                        {surveyed && (
+                          <span className="flex items-center gap-0.5 text-green-500">
+                            <ClipboardList className="h-3 w-3" />
+                          </span>
+                        )}
                         <span className="flex items-center gap-0.5">
                           <ClipboardList className="h-3 w-3" />
                           {paper.survey_count}
@@ -254,6 +266,11 @@ export function PaperListSidebar({
                       </div>
                     </div>
                   </div>
+
+                  {/* Selection indicator */}
+                  {isSelected && (
+                    <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" />
+                  )}
                 </Card>
               );
             })
@@ -261,17 +278,15 @@ export function PaperListSidebar({
         </div>
       </ScrollArea>
 
-      {/* Resize Handle */}
+      {/* Resize Handle - Thicker like chat resize bar */}
       <div
         className={cn(
-          'absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors group',
-          isResizing && 'bg-primary/30'
+          'absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-primary/10 transition-colors group flex items-center justify-center',
+          isResizing && 'bg-primary/20'
         )}
         onMouseDown={startResizing}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <GripVertical className="h-6 w-6 text-muted-foreground" />
-        </div>
+        <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </aside>
   );

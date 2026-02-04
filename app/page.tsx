@@ -101,7 +101,7 @@ export default function HomePage() {
         }}
       />
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Left Sidebar - Independent Scroll */}
+        {/* Left Sidebar - Full Height Independent Scroll */}
         {!isFullscreen && (
           <PaperListSidebar
             selectedPaperId={selectedPaperId}
@@ -109,16 +109,49 @@ export default function HomePage() {
           />
         )}
 
-        {/* Main Paper Viewer - Independent Scroll */}
-        <main className="flex-1 min-w-0 overflow-hidden">
-          <PaperViewer
-            paperId={selectedPaperId}
-            isFullscreen={isFullscreen}
-            onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-          />
-        </main>
+        {/* Center: Paper Viewer + Chat Panel */}
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+          {/* Main Paper Viewer - Independent Scroll */}
+          <main className="flex-1 min-h-0 overflow-hidden">
+            <PaperViewer
+              paperId={selectedPaperId}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+            />
+          </main>
 
-        {/* Right Survey Sidebar - Independent Scroll */}
+          {/* Resizable Chat Panel - Under Paper Viewer Only */}
+          {!isFullscreen && (
+            <div
+              className="border-t flex flex-col shrink-0"
+              style={{ height: chatHeight }}
+            >
+              {/* Resize Handle */}
+              <div
+                className={cn(
+                  'h-2 cursor-row-resize flex items-center justify-center hover:bg-primary/10 transition-colors group border-b',
+                  isResizingChat && 'bg-primary/20'
+                )}
+                onMouseDown={startResizingChat}
+              >
+                <GripHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+
+              {/* Chat Interface */}
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <ChatInterface
+                  paperId={selectedPaperId}
+                  onSearchResults={handleSearchResults}
+                  onPaperSelect={setSelectedPaperId}
+                  sessionId={sessionId}
+                  onMessageSent={handleChatMessage}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Survey Sidebar - Full Height Independent Scroll */}
         {!isFullscreen && selectedPaperId && (
           <SurveySidebar
             paperId={selectedPaperId}
@@ -128,36 +161,6 @@ export default function HomePage() {
           />
         )}
       </div>
-
-      {/* Resizable Chat Panel */}
-      {!isFullscreen && (
-        <div
-          className="border-t flex flex-col shrink-0"
-          style={{ height: chatHeight }}
-        >
-          {/* Resize Handle */}
-          <div
-            className={cn(
-              'h-2 cursor-row-resize flex items-center justify-center hover:bg-primary/10 transition-colors group border-b',
-              isResizingChat && 'bg-primary/20'
-            )}
-            onMouseDown={startResizingChat}
-          >
-            <GripHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-
-          {/* Chat Interface */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <ChatInterface
-              paperId={selectedPaperId}
-              onSearchResults={handleSearchResults}
-              onPaperSelect={setSelectedPaperId}
-              sessionId={sessionId}
-              onMessageSent={handleChatMessage}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
