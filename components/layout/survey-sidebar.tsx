@@ -221,8 +221,8 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
   };
 
   return (
-    <aside className="w-80 shrink-0 border-l bg-sidebar hidden xl:block">
-      <ScrollArea className="h-[calc(100vh-3.5rem-60px)]">
+    <aside className="w-80 shrink-0 border-l bg-sidebar hidden xl:block overflow-hidden">
+      <ScrollArea className="h-full">
         <div className="p-4 space-y-4">
           {/* 사용자 프로필 섹션 */}
           <Card>

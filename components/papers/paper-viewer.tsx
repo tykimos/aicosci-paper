@@ -66,7 +66,11 @@ export function PaperViewer({
         }
 
         const data = await response.json();
-        setPaper(data.data.paper);
+        if (data.success && data.data) {
+          setPaper(data.data.paper || data.data);
+        } else {
+          throw new Error(data.error?.message || '논문 데이터를 불러올 수 없습니다');
+        }
       } catch (err) {
         console.error('Failed to fetch paper:', err);
         setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다');

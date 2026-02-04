@@ -150,8 +150,8 @@ export function ChatInterface({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-80 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 z-40">
-      <div className="h-full flex flex-col max-w-7xl mx-auto">
+    <div className="h-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="h-full flex flex-col">
         {/* Messages area */}
         <ScrollArea ref={scrollRef} className="flex-1 px-4 py-4">
           <div className="space-y-4 pb-4">

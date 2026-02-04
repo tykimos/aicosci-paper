@@ -116,7 +116,7 @@ export function PaperListSidebar({
   return (
     <aside
       ref={sidebarRef}
-      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative"
+      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative overflow-hidden"
       style={{ width: sidebarWidth }}
     >
       <div className="p-4 space-y-4">
