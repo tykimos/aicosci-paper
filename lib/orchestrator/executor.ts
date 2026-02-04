@@ -173,15 +173,11 @@ export async function executeSkill(
     };
   } catch (error: unknown) {
     const err = error as { message?: string; status?: number; code?: string };
-    console.error('[Executor] Error executing skill:', {
-      message: err.message,
-      status: err.status,
-      code: err.code,
-      fullError: JSON.stringify(error, null, 2),
-    });
+    console.error('[Executor] Error executing skill:', err);
 
+    // Return actual error in development for debugging
     return {
-      content: '죄송합니다. 응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
+      content: `오류: ${err.message || '알 수 없는 오류'} (status: ${err.status}, code: ${err.code})`,
       rawResponse: '',
       signals: {
         coverage: 'none',
