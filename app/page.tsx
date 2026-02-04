@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { GripVertical } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PaperListSidebar } from '@/components/layout/paper-list-sidebar';
 import { PaperViewer } from '@/components/papers/paper-viewer';
@@ -13,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 const MIN_CHAT_WIDTH = 280;
 const MAX_CHAT_WIDTH = 500;
-const DEFAULT_CHAT_WIDTH = 360;
+const DEFAULT_CHAT_WIDTH = 340;
 
 export default function HomePage() {
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
@@ -110,9 +109,9 @@ export default function HomePage() {
         )}
 
         {/* Center: Paper Viewer + Survey (if paper selected) */}
-        <div className="flex-1 min-w-0 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden" style={{ minWidth: 0 }}>
           {/* Main Paper Viewer */}
-          <main className="flex-1 min-h-0 overflow-hidden">
+          <main className="flex-1 min-h-0 overflow-hidden" style={{ minWidth: '300px' }}>
             <PaperViewer
               paperId={selectedPaperId}
               isFullscreen={isFullscreen}
@@ -134,18 +133,24 @@ export default function HomePage() {
         {/* Right Sidebar - Chat Panel */}
         {!isFullscreen && (
           <div
-            className="border-l flex flex-row shrink-0 h-full bg-background"
-            style={{ width: chatWidth }}
+            className="flex flex-row shrink-0 h-full bg-background border-l"
+            style={{ width: chatWidth, minWidth: MIN_CHAT_WIDTH }}
           >
-            {/* Resize Handle */}
+            {/* Resize Handle - Elongated vertical bar */}
             <div
               className={cn(
-                'w-2 cursor-col-resize flex items-center justify-center hover:bg-primary/10 transition-colors group border-r',
-                isResizingChat && 'bg-primary/20'
+                'w-3 cursor-col-resize flex items-center justify-center hover:bg-primary/20 transition-colors group relative',
+                isResizingChat && 'bg-primary/30'
               )}
               onMouseDown={startResizingChat}
             >
-              <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Elongated grab indicator */}
+              <div className={cn(
+                'absolute h-16 w-1.5 rounded-full transition-all',
+                isResizingChat
+                  ? 'bg-primary'
+                  : 'bg-slate-300 group-hover:bg-primary/60'
+              )} />
             </div>
 
             {/* Chat Interface */}

@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, GripVertical, Eye } from 'lucide-react';
+import { Search, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
 import type { Paper } from '@/types/database';
@@ -15,7 +15,7 @@ interface PaperListSidebarProps {
   onSelectPaper: (id: string) => void;
 }
 
-const MIN_WIDTH = 200;
+const MIN_WIDTH = 280;
 const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 320;
 
@@ -251,15 +251,21 @@ export function PaperListSidebar({
         </div>
       </ScrollArea>
 
-      {/* Resize Handle - Thicker like chat resize bar */}
+      {/* Resize Handle - Elongated vertical bar */}
       <div
         className={cn(
-          'absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-primary/10 transition-colors group flex items-center justify-center',
-          isResizing && 'bg-primary/20'
+          'absolute top-0 right-0 w-3 h-full cursor-col-resize hover:bg-primary/20 transition-colors group flex items-center justify-center',
+          isResizing && 'bg-primary/30'
         )}
         onMouseDown={startResizing}
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        {/* Elongated grab indicator */}
+        <div className={cn(
+          'absolute h-16 w-1.5 rounded-full transition-all',
+          isResizing
+            ? 'bg-primary'
+            : 'bg-slate-300 group-hover:bg-primary/60'
+        )} />
       </div>
     </aside>
   );

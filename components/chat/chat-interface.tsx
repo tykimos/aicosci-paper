@@ -7,14 +7,15 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Paper } from '@/types/database';
 import { ChatMessage } from './chat-message';
-import { PromptButtons } from './prompt-buttons';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   papers?: Paper[];
+  promptButtons?: string[];
   timestamp: Date;
+  isStreaming?: boolean;
 }
 
 interface ChatInterfaceProps {
@@ -78,6 +79,7 @@ export function ChatInterface({
             role: 'assistant',
             content: '',
             timestamp: new Date(),
+            isStreaming: true,
           };
           setMessages([assistantMessage]);
 
@@ -101,11 +103,24 @@ export function ChatInterface({
                   assistantMessage.content += parsed.data;
                   setMessages([{ ...assistantMessage }]);
                 }
+                if (parsed.type === 'buttons' && parsed.data) {
+                  assistantMessage.promptButtons = parsed.data;
+                  setMessages([{ ...assistantMessage }]);
+                }
+                if (parsed.type === 'done' && parsed.data) {
+                  assistantMessage.promptButtons = parsed.data.promptButtons;
+                  assistantMessage.isStreaming = false;
+                  setMessages([{ ...assistantMessage }]);
+                }
               } catch {
                 // Ignore parsing errors
               }
             }
           }
+
+          // Mark streaming complete
+          assistantMessage.isStreaming = false;
+          setMessages([{ ...assistantMessage }]);
         } catch (error) {
           console.error('Greeting error:', error);
         } finally {
@@ -164,6 +179,7 @@ export function ChatInterface({
         role: 'assistant',
         content: '',
         timestamp: new Date(),
+        isStreaming: true,
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
@@ -197,6 +213,19 @@ export function ChatInterface({
               setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
             }
 
+            // Handle buttons
+            if (parsed.type === 'buttons' && parsed.data) {
+              assistantMessage.promptButtons = parsed.data;
+              setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
+            }
+
+            // Handle done signal with buttons
+            if (parsed.type === 'done' && parsed.data) {
+              assistantMessage.promptButtons = parsed.data.promptButtons;
+              assistantMessage.isStreaming = false;
+              setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
+            }
+
             // Handle paper search results
             if (parsed.papers) {
               assistantMessage.papers = parsed.papers;
@@ -207,6 +236,7 @@ export function ChatInterface({
             // Handle error
             if (parsed.type === 'error') {
               assistantMessage.content = parsed.data?.message || '오류가 발생했습니다.';
+              assistantMessage.isStreaming = false;
               setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
             }
           } catch (e) {
@@ -214,6 +244,10 @@ export function ChatInterface({
           }
         }
       }
+
+      // Mark streaming complete
+      assistantMessage.isStreaming = false;
+      setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: Message = {
@@ -238,77 +272,76 @@ export function ChatInterface({
   return (
     <div className="h-full flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Messages area - takes remaining space */}
-      <ScrollArea ref={scrollRef} className="flex-1 min-h-0 px-4 py-4">
-          <div className="space-y-4 pb-4">
-            {messages.length === 0 && (
-              <div className="flex items-center justify-center h-full min-h-[120px]">
-                <p className="text-muted-foreground text-sm font-light tracking-wide">
-                  논문에 대해 궁금한 점을 물어보세요
-                </p>
-              </div>
-            )}
-            {messages.map((message) => (
+      <ScrollArea ref={scrollRef} className="flex-1 min-h-0 px-3 py-4">
+        <div className="space-y-4 pb-4">
+          {messages.length === 0 && !isStreaming && (
+            <div className="flex items-center justify-center h-full min-h-[120px]">
+              <p className="text-muted-foreground text-sm font-light tracking-wide text-center">
+                논문에 대해 궁금한 점을<br/>물어보세요
+              </p>
+            </div>
+          )}
+          {messages.map((message, idx) => (
+            <div key={message.id}>
               <ChatMessage
-                key={message.id}
                 message={message}
                 onPaperSelect={onPaperSelect}
               />
-            ))}
-            {isStreaming && messages[messages.length - 1]?.role === 'user' && (
-              <div className="flex items-start gap-3 animate-in fade-in duration-300">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
-                  {/* Gradient spinning loader */}
-                  <div className="relative w-6 h-6">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-spin"
-                         style={{ animationDuration: '1s' }}></div>
-                    <div className="absolute inset-[2px] rounded-full bg-background"></div>
-                    <div className="absolute inset-[3px] rounded-full bg-gradient-to-r from-primary via-purple-500 to-pink-500 opacity-60 animate-spin"
-                         style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
-                    <div className="absolute inset-[5px] rounded-full bg-background"></div>
-                  </div>
+              {/* Prompt buttons below assistant messages */}
+              {message.role === 'assistant' &&
+               message.promptButtons &&
+               message.promptButtons.length > 0 &&
+               !message.isStreaming &&
+               idx === messages.length - 1 && (
+                <div className="mt-2 ml-11 flex flex-wrap gap-2">
+                  {message.promptButtons.map((btn, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSend(btn)}
+                      disabled={isStreaming}
+                      className="px-3 py-1.5 text-xs border border-slate-200 bg-white text-slate-600 rounded-full hover:border-primary hover:text-primary hover:bg-primary/5 transition-all shadow-sm disabled:opacity-50"
+                    >
+                      {btn}
+                    </button>
+                  ))}
                 </div>
-                <div className="flex-1">
-                  <div className="inline-block bg-muted/50 rounded-2xl px-4 py-3 border border-border/50">
-                    <span className="text-sm text-muted-foreground">생각 중...</span>
-                  </div>
-                </div>
+              )}
+            </div>
+          ))}
+          {isStreaming && messages[messages.length - 1]?.role === 'user' && (
+            <div className="flex items-start gap-3 animate-in fade-in duration-300">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100">
+                <div
+                  className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400"
+                  style={{ animation: 'spin 1s linear infinite' }}
+                />
+                <span className="text-xs text-slate-500">생각 중...</span>
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
 
       {/* Bottom area - fixed at bottom */}
-      <div className="flex-shrink-0 border-t bg-background/80 backdrop-blur">
-        {/* Prompt buttons */}
-        <div className="px-4 pt-3 pb-2">
-          <PromptButtons
-            paperId={paperId}
-            onPromptClick={handleSend}
+      <div className="flex-shrink-0 border-t bg-background/80 backdrop-blur px-3 py-3">
+        <div className="relative flex items-center gap-2">
+          <Input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={paperId ? "질문하세요..." : "검색 또는 질문..."}
             disabled={isStreaming}
+            className="pr-10 h-10 text-sm rounded-full border-2 transition-all duration-200 focus-visible:ring-4 focus-visible:ring-primary/20 bg-white dark:bg-slate-900"
           />
-        </div>
-
-        {/* Input area */}
-        <div className="px-4 pb-4">
-          <div className="relative flex items-center gap-2 group">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={paperId ? "논문에 대해 질문하세요..." : "논문을 검색하거나 질문하세요..."}
-              disabled={isStreaming}
-              className="pr-12 h-11 text-base rounded-full border-2 transition-all duration-200 focus-visible:ring-4 focus-visible:ring-primary/20 bg-white dark:bg-slate-900"
-            />
-            <Button
-              onClick={() => handleSend()}
-              disabled={!input.trim() || isStreaming}
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full shadow-lg transition-all duration-200 hover:scale-105 disabled:scale-100 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            onClick={() => handleSend()}
+            disabled={!input.trim() || isStreaming}
+            size="icon"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full shadow-lg transition-all duration-200 hover:scale-105 disabled:scale-100 disabled:opacity-50"
+          >
+            <Send className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
     </div>
