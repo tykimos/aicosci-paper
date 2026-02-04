@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ThumbsUp, ClipboardList, FileText } from 'lucide-react';
+import { Search, ThumbsUp, ClipboardList, FileText, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Paper } from '@/types/database';
 
@@ -14,6 +14,10 @@ interface PaperListSidebarProps {
   selectedPaperId: string | null;
   onSelectPaper: (id: string) => void;
 }
+
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 500;
+const DEFAULT_WIDTH = 320;
 
 export function PaperListSidebar({
   selectedPaperId,
@@ -24,6 +28,9 @@ export function PaperListSidebar({
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const fetchPapers = async () => {
@@ -55,8 +62,43 @@ export function PaperListSidebar({
     return () => clearTimeout(debounce);
   }, [search, selectedTag]);
 
+  const startResizing = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback(
+    (e: MouseEvent) => {
+      if (isResizing && sidebarRef.current) {
+        const newWidth = e.clientX - sidebarRef.current.getBoundingClientRect().left;
+        if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+          setSidebarWidth(newWidth);
+        }
+      }
+    },
+    [isResizing]
+  );
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', resize);
+      window.addEventListener('mouseup', stopResizing);
+    }
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [isResizing, resize, stopResizing]);
+
   return (
-    <aside className="w-72 shrink-0 border-r bg-sidebar hidden lg:block">
+    <aside
+      ref={sidebarRef}
+      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative"
+      style={{ width: sidebarWidth }}
+    >
       <div className="p-4 space-y-4">
         {/* 검색 */}
         <div className="relative">
@@ -64,17 +106,17 @@ export function PaperListSidebar({
           <Input
             type="text"
             placeholder="필터..."
-            className="pl-9 h-9"
+            className="pl-9 h-9 w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         {/* 태그 필터 */}
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 overflow-hidden">
           <Badge
             variant={selectedTag === null ? 'secondary' : 'outline'}
-            className="cursor-pointer hover:bg-secondary/80"
+            className="cursor-pointer hover:bg-secondary/80 shrink-0"
             onClick={() => setSelectedTag(null)}
           >
             전체
@@ -83,7 +125,7 @@ export function PaperListSidebar({
             <Badge
               key={tag}
               variant={selectedTag === tag ? 'secondary' : 'outline'}
-              className="cursor-pointer hover:bg-accent"
+              className="cursor-pointer hover:bg-accent shrink-0 max-w-[120px] truncate"
               onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
             >
               {tag}
@@ -92,7 +134,7 @@ export function PaperListSidebar({
         </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-3.5rem-8rem)]">
+      <ScrollArea className="flex-1">
         <div className="p-4 pt-0 space-y-2">
           {isLoading ? (
             [...Array(5)].map((_, i) => (
@@ -104,49 +146,68 @@ export function PaperListSidebar({
             </p>
           ) : (
             papers.map((paper) => (
-            <Card
-              key={paper.id}
-              className={cn(
-                'p-3 cursor-pointer transition-colors hover:bg-accent/50',
-                selectedPaperId === paper.id && 'bg-accent border-primary'
-              )}
-              onClick={() => onSelectPaper(paper.id)}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <FileText className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                  <h3 className="text-sm font-medium line-clamp-2 leading-tight">
-                    {paper.title}
-                  </h3>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {paper.authors.join(', ')}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1">
-                    {paper.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0">
-                        {tag}
-                      </Badge>
-                    ))}
+              <Card
+                key={paper.id}
+                className={cn(
+                  'p-3 cursor-pointer transition-colors hover:bg-accent/50 overflow-hidden',
+                  selectedPaperId === paper.id && 'bg-accent border-primary'
+                )}
+                onClick={() => onSelectPaper(paper.id)}
+              >
+                <div className="space-y-2 min-w-0">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <FileText className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                    <h3 className="text-sm font-medium line-clamp-2 leading-tight break-words min-w-0">
+                      {paper.title}
+                    </h3>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-0.5">
-                      <ThumbsUp className="h-3 w-3" />
-                      {paper.vote_count}
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <ClipboardList className="h-3 w-3" />
-                      {paper.survey_count}
-                    </span>
+                  {paper.authors.length > 0 && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {paper.authors.join(', ')}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between gap-2 min-w-0">
+                    <div className="flex gap-1 min-w-0 overflow-hidden flex-1">
+                      {paper.tags.slice(0, 2).map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs px-1.5 py-0 shrink-0 max-w-[80px] truncate"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                      <span className="flex items-center gap-0.5">
+                        <ThumbsUp className="h-3 w-3" />
+                        {paper.vote_count}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <ClipboardList className="h-3 w-3" />
+                        {paper.survey_count}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))
+              </Card>
+            ))
           )}
         </div>
       </ScrollArea>
+
+      {/* Resize Handle */}
+      <div
+        className={cn(
+          'absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors group',
+          isResizing && 'bg-primary/30'
+        )}
+        onMouseDown={startResizing}
+      >
+        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="h-6 w-6 text-muted-foreground" />
+        </div>
+      </div>
     </aside>
   );
 }
