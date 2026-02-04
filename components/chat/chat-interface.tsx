@@ -35,6 +35,7 @@ export function ChatInterface({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [hasGreeted, setHasGreeted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +48,74 @@ export function ChatInterface({
       }
     }
   }, [messages]);
+
+  // Site enter hook - trigger greeting on first visit
+  useEffect(() => {
+    if (sessionId && !hasGreeted && messages.length === 0) {
+      const triggerGreeting = async () => {
+        setHasGreeted(true);
+        setIsStreaming(true);
+
+        try {
+          const response = await fetch('/api/v1/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trigger: 'site_enter',
+              session_id: sessionId,
+              stream: true,
+            }),
+          });
+
+          if (!response.ok) return;
+
+          const reader = response.body?.getReader();
+          if (!reader) return;
+
+          const decoder = new TextDecoder();
+          let assistantMessage: Message = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: '',
+            timestamp: new Date(),
+          };
+          setMessages([assistantMessage]);
+
+          let buffer = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (!line.trim() || !line.startsWith('data: ')) continue;
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.type === 'content' && parsed.data) {
+                  assistantMessage.content += parsed.data;
+                  setMessages([{ ...assistantMessage }]);
+                }
+              } catch {
+                // Ignore parsing errors
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Greeting error:', error);
+        } finally {
+          setIsStreaming(false);
+        }
+      };
+
+      triggerGreeting();
+    }
+  }, [sessionId, hasGreeted, messages.length]);
 
   const handleSend = async (text?: string) => {
     const messageText = text || input.trim();

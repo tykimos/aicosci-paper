@@ -4,9 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ClipboardList, FileText, GripVertical, Eye } from 'lucide-react';
+import { Search, GripVertical, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
 import type { Paper } from '@/types/database';
@@ -188,90 +187,56 @@ export function PaperListSidebar({
               const isSelected = selectedPaperId === paper.id;
 
               return (
-                <Card
+                <div
                   key={paper.id}
                   className={cn(
-                    'group relative overflow-hidden cursor-pointer transition-all duration-200',
-                    'border border-border/50 hover:border-border',
-                    'hover:shadow-md hover:shadow-primary/5',
-                    isSelected && 'bg-primary/5 border-primary/50 shadow-sm',
-                    viewed && 'border-l-[3px] border-l-blue-500',
-                    !isSelected && !viewed && 'hover:bg-accent/30'
+                    'group px-3 py-2.5 cursor-pointer transition-all duration-150 border-l-2',
+                    isSelected
+                      ? 'bg-primary/5 border-l-primary'
+                      : viewed
+                        ? 'border-l-blue-400/50 hover:bg-accent/30'
+                        : 'border-l-transparent hover:bg-accent/30 hover:border-l-muted-foreground/30'
                   )}
                   onClick={() => onSelectPaper(paper.id)}
                 >
-                  <div className="p-3 space-y-2.5">
-                    {/* Header with title and status */}
-                    <div className="flex items-start gap-2.5">
-                      <div className={cn(
-                        'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
-                        isSelected ? 'bg-primary/10' : 'bg-muted/50 group-hover:bg-muted'
-                      )}>
-                        <FileText className={cn(
-                          'h-4 w-4',
-                          isSelected ? 'text-primary' : viewed ? 'text-blue-500' : 'text-muted-foreground'
-                        )} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={cn(
-                          'text-sm font-medium line-clamp-2 leading-snug',
-                          isSelected ? 'text-foreground' : viewed ? 'text-muted-foreground' : 'text-foreground'
-                        )}>
-                          {paper.title}
-                        </h3>
-                        {paper.authors.length > 0 && (
-                          <p className="text-xs text-muted-foreground/80 truncate mt-1">
-                            {paper.authors.slice(0, 3).join(', ')}{paper.authors.length > 3 && ' ...'}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                  {/* Title */}
+                  <h3 className={cn(
+                    'text-sm leading-snug line-clamp-2',
+                    isSelected ? 'font-medium text-foreground' : viewed ? 'text-muted-foreground' : 'text-foreground'
+                  )}>
+                    {paper.title}
+                  </h3>
 
-                    {/* Tags and stats */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
-                        {paper.tags.slice(0, 2).map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant={selectedTag === tag ? 'default' : 'outline'}
-                            className={cn(
-                              'text-[10px] px-1.5 py-0 h-5 shrink-0 max-w-[70px] truncate cursor-pointer transition-colors',
-                              selectedTag !== tag && 'hover:bg-accent border-border/50'
-                            )}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedTag(tag === selectedTag ? null : tag);
-                              setShowViewedOnly(false);
-                            }}
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground shrink-0">
-                        {viewed && (
-                          <span className="flex items-center gap-0.5 text-blue-500">
-                            <Eye className="h-3 w-3" />
-                          </span>
+                  {/* Hashtags */}
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    {paper.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className={cn(
+                          'text-[11px] cursor-pointer transition-colors',
+                          selectedTag === tag
+                            ? 'text-primary font-medium'
+                            : 'text-muted-foreground hover:text-foreground'
                         )}
-                        {surveyed && (
-                          <span className="flex items-center gap-0.5 text-green-500">
-                            <ClipboardList className="h-3 w-3" />
-                          </span>
-                        )}
-                        <span className="flex items-center gap-0.5">
-                          <ClipboardList className="h-3 w-3" />
-                          {paper.survey_count}
-                        </span>
-                      </div>
-                    </div>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTag(tag === selectedTag ? null : tag);
+                          setShowViewedOnly(false);
+                        }}
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                    {/* Status indicators */}
+                    {(viewed || surveyed) && (
+                      <span className="text-[10px] text-muted-foreground/60 ml-auto">
+                        {viewed && '읽음'}
+                        {viewed && surveyed && ' · '}
+                        {surveyed && '설문완료'}
+                      </span>
+                    )}
                   </div>
-
-                  {/* Selection indicator */}
-                  {isSelected && (
-                    <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" />
-                  )}
-                </Card>
+                </div>
               );
             })
           )}
