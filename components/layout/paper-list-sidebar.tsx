@@ -190,12 +190,12 @@ export function PaperListSidebar({
                 <div
                   key={paper.id}
                   className={cn(
-                    'group px-3 py-2.5 cursor-pointer transition-all duration-150 border-l-2',
+                    'group p-3 cursor-pointer transition-all duration-150 rounded-lg border',
                     isSelected
-                      ? 'bg-primary/5 border-l-primary'
+                      ? 'bg-primary/5 border-primary/30 shadow-sm'
                       : viewed
-                        ? 'border-l-blue-400/50 hover:bg-accent/30'
-                        : 'border-l-transparent hover:bg-accent/30 hover:border-l-muted-foreground/30'
+                        ? 'bg-muted/30 border-muted hover:bg-muted/50'
+                        : 'bg-card border-border/50 hover:bg-accent/50 hover:border-border'
                   )}
                   onClick={() => onSelectPaper(paper.id)}
                 >
@@ -208,34 +208,36 @@ export function PaperListSidebar({
                   </h3>
 
                   {/* Hashtags */}
-                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    {paper.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className={cn(
-                          'text-[11px] cursor-pointer transition-colors',
-                          selectedTag === tag
-                            ? 'text-primary font-medium'
-                            : 'text-muted-foreground hover:text-foreground'
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTag(tag === selectedTag ? null : tag);
-                          setShowViewedOnly(false);
-                        }}
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                    {/* Status indicators */}
-                    {(viewed || surveyed) && (
-                      <span className="text-[10px] text-muted-foreground/60 ml-auto">
-                        {viewed && '읽음'}
-                        {viewed && surveyed && ' · '}
-                        {surveyed && '설문완료'}
-                      </span>
-                    )}
-                  </div>
+                  {(paper.tags.length > 0 || viewed || surveyed) && (
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                      {paper.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className={cn(
+                            'text-[11px] cursor-pointer transition-colors',
+                            selectedTag === tag
+                              ? 'text-primary font-medium'
+                              : 'text-muted-foreground hover:text-foreground'
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTag(tag === selectedTag ? null : tag);
+                            setShowViewedOnly(false);
+                          }}
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                      {/* Status indicators */}
+                      {(viewed || surveyed) && (
+                        <span className="text-[10px] text-muted-foreground/60 ml-auto">
+                          {viewed && '읽음'}
+                          {viewed && surveyed && ' · '}
+                          {surveyed && '설문완료'}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })
