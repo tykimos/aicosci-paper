@@ -156,8 +156,7 @@ export async function executeSkill(
     const response = await client.chat.completions.create({
       model: getAzureConfig().deployment,
       messages,
-      temperature: 0.7,
-      max_completion_tokens: 2000,
+            max_completion_tokens: 2000,
     });
 
     const rawResponse = response.choices[0]?.message?.content || '';
@@ -175,9 +174,8 @@ export async function executeSkill(
     const err = error as { message?: string; status?: number; code?: string };
     console.error('[Executor] Error executing skill:', err);
 
-    // Return actual error in development for debugging
     return {
-      content: `오류: ${err.message || '알 수 없는 오류'} (status: ${err.status}, code: ${err.code})`,
+      content: '죄송합니다. 응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
       rawResponse: '',
       signals: {
         coverage: 'none',
@@ -221,8 +219,7 @@ export async function executeSkillStream(
         const stream = await client.chat.completions.create({
           model: getAzureConfig().deployment,
           messages,
-          temperature: 0.7,
-          max_completion_tokens: 2000,
+                    max_completion_tokens: 2000,
           stream: true,
         });
 
