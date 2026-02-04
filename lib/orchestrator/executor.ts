@@ -18,8 +18,15 @@ const AZURE_OPENAI_API_VERSION = process.env.AZURE_OPENAI_API_VERSION || '2024-0
 
 // Initialize Azure OpenAI client
 function getAzureClient(): AzureOpenAI | null {
+  console.log('[Executor] Checking Azure config:', {
+    hasEndpoint: !!AZURE_OPENAI_ENDPOINT,
+    hasApiKey: !!AZURE_OPENAI_API_KEY,
+    deployment: AZURE_OPENAI_DEPLOYMENT,
+    apiVersion: AZURE_OPENAI_API_VERSION,
+  });
+
   if (!AZURE_OPENAI_ENDPOINT || !AZURE_OPENAI_API_KEY) {
-    console.error('[Executor] Azure OpenAI not configured');
+    console.error('[Executor] Azure OpenAI not configured - missing endpoint or API key');
     return null;
   }
 
@@ -165,8 +172,14 @@ export async function executeSkill(
       signals,
       promptButtons,
     };
-  } catch (error) {
-    console.error('[Executor] Error executing skill:', error);
+  } catch (error: unknown) {
+    const err = error as { message?: string; status?: number; code?: string };
+    console.error('[Executor] Error executing skill:', {
+      message: err.message,
+      status: err.status,
+      code: err.code,
+      fullError: JSON.stringify(error, null, 2),
+    });
 
     return {
       content: '죄송합니다. 응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
