@@ -19,10 +19,22 @@ interface ChatMessageProps {
   onPaperSelect: (paperId: string) => void;
 }
 
+// Clean signals and internal tags from content
+function cleanContent(text: string): string {
+  return text
+    .replace(/<signals>[\s\S]*?<\/signals>/g, '')
+    .replace(/<prompt_buttons>[\s\S]*?<\/prompt_buttons>/g, '')
+    .replace(/<action_buttons>[\s\S]*?<\/action_buttons>/g, '')
+    .replace(/<suggestion_buttons>[\s\S]*?<\/suggestion_buttons>/g, '')
+    .trim();
+}
+
 // Simple markdown-like text rendering
 function formatText(text: string) {
+  // First clean any internal tags
+  const cleanedText = cleanContent(text);
   // Split by code blocks first
-  const parts = text.split(/```(\w+)?\n([\s\S]*?)```/g);
+  const parts = cleanedText.split(/```(\w+)?\n([\s\S]*?)```/g);
   const elements: React.ReactNode[] = [];
 
   for (let i = 0; i < parts.length; i++) {

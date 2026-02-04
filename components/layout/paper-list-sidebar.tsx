@@ -107,16 +107,22 @@ export function PaperListSidebar({
     };
   }, [isResizing, resize, stopResizing]);
 
-  // Filter papers based on viewed status
+  // Filter and sort papers - viewed papers go to bottom
   const filteredPapers = showViewedOnly
     ? papers.filter((p) => isViewed(p.id))
-    : papers;
+    : [...papers].sort((a, b) => {
+        const aViewed = isViewed(a.id);
+        const bViewed = isViewed(b.id);
+        if (aViewed && !bViewed) return 1; // a goes to bottom
+        if (!aViewed && bViewed) return -1; // b goes to bottom
+        return 0; // maintain original order
+      });
 
   return (
     <aside
       ref={sidebarRef}
-      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative overflow-hidden"
-      style={{ width: sidebarWidth }}
+      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative h-full"
+      style={{ width: sidebarWidth, maxHeight: '100vh' }}
     >
       <div className="p-4 space-y-4">
         {/* 검색 */}
@@ -170,8 +176,8 @@ export function PaperListSidebar({
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-4 pt-0 space-y-2">
+      <ScrollArea className="flex-1 overflow-hidden">
+        <div className="p-4 pt-0 space-y-2 pb-8">
           {isLoading ? (
             [...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-24 w-full" />
@@ -190,12 +196,12 @@ export function PaperListSidebar({
                 <div
                   key={paper.id}
                   className={cn(
-                    'group p-3 cursor-pointer transition-all duration-150 rounded-lg border',
+                    'group p-3 cursor-pointer transition-all duration-150 rounded-lg border-2 shadow-sm',
                     isSelected
-                      ? 'bg-primary/5 border-primary/30 shadow-sm'
+                      ? 'bg-primary/10 border-primary shadow-md'
                       : viewed
-                        ? 'bg-muted/30 border-muted hover:bg-muted/50'
-                        : 'bg-card border-border/50 hover:bg-accent/50 hover:border-border'
+                        ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-primary/50'
                   )}
                   onClick={() => onSelectPaper(paper.id)}
                 >

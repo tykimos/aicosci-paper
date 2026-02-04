@@ -236,10 +236,9 @@ export function ChatInterface({
   };
 
   return (
-    <div className="h-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="h-full flex flex-col">
-        {/* Messages area */}
-        <ScrollArea ref={scrollRef} className="flex-1 px-4 py-4">
+    <div className="h-full flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      {/* Messages area - takes remaining space */}
+      <ScrollArea ref={scrollRef} className="flex-1 min-h-0 px-4 py-4">
           <div className="space-y-4 pb-4">
             {messages.length === 0 && (
               <div className="flex items-center justify-center h-full min-h-[120px]">
@@ -257,13 +256,20 @@ export function ChatInterface({
             ))}
             {isStreaming && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex items-start gap-3 animate-in fade-in duration-300">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
+                  {/* Gradient spinning loader */}
+                  <div className="relative w-6 h-6">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-spin"
+                         style={{ animationDuration: '1s' }}></div>
+                    <div className="absolute inset-[2px] rounded-full bg-background"></div>
+                    <div className="absolute inset-[3px] rounded-full bg-gradient-to-r from-primary via-purple-500 to-pink-500 opacity-60 animate-spin"
+                         style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+                    <div className="absolute inset-[5px] rounded-full bg-background"></div>
+                  </div>
+                </div>
                 <div className="flex-1">
-                  <div className="inline-block bg-muted rounded-2xl px-4 py-3">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce"></span>
-                    </div>
+                  <div className="inline-block bg-muted/50 rounded-2xl px-4 py-3 border border-border/50">
+                    <span className="text-sm text-muted-foreground">생각 중...</span>
                   </div>
                 </div>
               </div>
@@ -271,8 +277,10 @@ export function ChatInterface({
           </div>
         </ScrollArea>
 
+      {/* Bottom area - fixed at bottom */}
+      <div className="flex-shrink-0 border-t bg-background/80 backdrop-blur">
         {/* Prompt buttons */}
-        <div className="px-4 pb-2">
+        <div className="px-4 pt-3 pb-2">
           <PromptButtons
             paperId={paperId}
             onPromptClick={handleSend}
@@ -290,7 +298,7 @@ export function ChatInterface({
               onKeyDown={handleKeyDown}
               placeholder={paperId ? "논문에 대해 질문하세요..." : "논문을 검색하거나 질문하세요..."}
               disabled={isStreaming}
-              className="pr-12 h-11 text-base rounded-full border-2 transition-all duration-200 focus-visible:ring-4 focus-visible:ring-primary/20"
+              className="pr-12 h-11 text-base rounded-full border-2 transition-all duration-200 focus-visible:ring-4 focus-visible:ring-primary/20 bg-white dark:bg-slate-900"
             />
             <Button
               onClick={() => handleSend()}

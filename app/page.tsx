@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { GripHorizontal } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PaperListSidebar } from '@/components/layout/paper-list-sidebar';
 import { PaperViewer } from '@/components/papers/paper-viewer';
@@ -11,15 +11,15 @@ import { ChatInterface } from '@/components/chat/chat-interface';
 import { useStatistics } from '@/hooks/use-statistics';
 import { cn } from '@/lib/utils';
 
-const MIN_CHAT_HEIGHT = 150;
-const MAX_CHAT_HEIGHT = 600;
-const DEFAULT_CHAT_HEIGHT = 320;
+const MIN_CHAT_WIDTH = 280;
+const MAX_CHAT_WIDTH = 500;
+const DEFAULT_CHAT_WIDTH = 360;
 
 export default function HomePage() {
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [chatHeight, setChatHeight] = useState(DEFAULT_CHAT_HEIGHT);
+  const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH);
   const [isResizingChat, setIsResizingChat] = useState(false);
   const prevPaperIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ export default function HomePage() {
     }
   }, [selectedPaperId, stats]);
 
-  // Chat panel resize handlers
+  // Chat panel resize handlers (horizontal)
   const startResizingChat = useCallback(() => {
     setIsResizingChat(true);
   }, []);
@@ -60,9 +60,9 @@ export default function HomePage() {
     (e: MouseEvent) => {
       if (isResizingChat && containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
-        const newHeight = containerRect.bottom - e.clientY;
-        if (newHeight >= MIN_CHAT_HEIGHT && newHeight <= MAX_CHAT_HEIGHT) {
-          setChatHeight(newHeight);
+        const newWidth = containerRect.right - e.clientX;
+        if (newWidth >= MIN_CHAT_WIDTH && newWidth <= MAX_CHAT_WIDTH) {
+          setChatWidth(newWidth);
         }
       }
     },
@@ -101,7 +101,7 @@ export default function HomePage() {
         }}
       />
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Left Sidebar - Full Height Independent Scroll */}
+        {/* Left Sidebar - Paper List */}
         {!isFullscreen && (
           <PaperListSidebar
             selectedPaperId={selectedPaperId}
@@ -109,9 +109,9 @@ export default function HomePage() {
           />
         )}
 
-        {/* Center: Paper Viewer + Chat Panel */}
-        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-          {/* Main Paper Viewer - Independent Scroll */}
+        {/* Center: Paper Viewer + Survey (if paper selected) */}
+        <div className="flex-1 min-w-0 flex overflow-hidden">
+          {/* Main Paper Viewer */}
           <main className="flex-1 min-h-0 overflow-hidden">
             <PaperViewer
               paperId={selectedPaperId}
@@ -120,45 +120,45 @@ export default function HomePage() {
             />
           </main>
 
-          {/* Resizable Chat Panel - Under Paper Viewer Only */}
-          {!isFullscreen && (
-            <div
-              className="border-t flex flex-col shrink-0"
-              style={{ height: chatHeight }}
-            >
-              {/* Resize Handle */}
-              <div
-                className={cn(
-                  'h-2 cursor-row-resize flex items-center justify-center hover:bg-primary/10 transition-colors group border-b',
-                  isResizingChat && 'bg-primary/20'
-                )}
-                onMouseDown={startResizingChat}
-              >
-                <GripHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-
-              {/* Chat Interface */}
-              <div className="flex-1 min-h-0 overflow-hidden">
-                <ChatInterface
-                  paperId={selectedPaperId}
-                  onSearchResults={handleSearchResults}
-                  onPaperSelect={setSelectedPaperId}
-                  sessionId={sessionId}
-                  onMessageSent={handleChatMessage}
-                />
-              </div>
-            </div>
+          {/* Survey Sidebar - Only when paper is selected */}
+          {!isFullscreen && selectedPaperId && (
+            <SurveySidebar
+              paperId={selectedPaperId}
+              sessionId={sessionId}
+              onPaperSelect={setSelectedPaperId}
+              onSurveyComplete={handleSurveyComplete}
+            />
           )}
         </div>
 
-        {/* Right Survey Sidebar - Full Height Independent Scroll */}
-        {!isFullscreen && selectedPaperId && (
-          <SurveySidebar
-            paperId={selectedPaperId}
-            sessionId={sessionId}
-            onPaperSelect={setSelectedPaperId}
-            onSurveyComplete={handleSurveyComplete}
-          />
+        {/* Right Sidebar - Chat Panel */}
+        {!isFullscreen && (
+          <div
+            className="border-l flex flex-row shrink-0 h-full bg-background"
+            style={{ width: chatWidth }}
+          >
+            {/* Resize Handle */}
+            <div
+              className={cn(
+                'w-2 cursor-col-resize flex items-center justify-center hover:bg-primary/10 transition-colors group border-r',
+                isResizingChat && 'bg-primary/20'
+              )}
+              onMouseDown={startResizingChat}
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+
+            {/* Chat Interface */}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <ChatInterface
+                paperId={selectedPaperId}
+                onSearchResults={handleSearchResults}
+                onPaperSelect={setSelectedPaperId}
+                sessionId={sessionId}
+                onMessageSent={handleChatMessage}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>
