@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -17,10 +17,10 @@ interface PDFViewerProps {
 
 export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
   const [zoom, setZoom] = useState<number>(1.0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle scroll tracking for progress
@@ -28,6 +28,10 @@ export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
     if (!containerRef.current || !onProgressChange) return;
 
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    if (scrollHeight <= clientHeight) {
+      onProgressChange(100);
+      return;
+    }
     const scrollPercent = (scrollTop / (scrollHeight - clientHeight)) * 100;
     onProgressChange(Math.min(100, Math.max(0, scrollPercent)));
   }, [onProgressChange]);
@@ -40,13 +44,18 @@ export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Update progress when page changes
+  // Track container width for responsive pages
   useEffect(() => {
-    if (numPages > 0 && onProgressChange) {
-      const progress = ((pageNumber - 1) / (numPages - 1)) * 100;
-      onProgressChange(progress);
-    }
-  }, [pageNumber, numPages, onProgressChange]);
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth - 48); // Account for padding
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -60,14 +69,6 @@ export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
     setLoading(false);
   };
 
-  const handlePrevPage = () => {
-    setPageNumber((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setPageNumber((prev) => Math.min(numPages, prev + 1));
-  };
-
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(2.0, prev + 0.1));
   };
@@ -78,7 +79,7 @@ export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[600px]">
+      <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center space-y-3">
           <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
             <svg
@@ -103,19 +104,19 @@ export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Refined Controls */}
-      <div className="flex items-center justify-between px-6 py-3 border-b bg-gradient-to-b from-background to-background/95 backdrop-blur-sm">
+      {/* Zoom Controls */}
+      <div className="flex items-center justify-between px-4 py-2 border-b bg-background/95 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={handleZoomOut}
             disabled={zoom <= 0.5}
-            className="hover:bg-accent/80 transition-all duration-200"
+            className="hover:bg-accent/80"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="text-sm font-medium tabular-nums min-w-[4rem] text-center">
+          <span className="text-sm font-medium tabular-nums min-w-[3.5rem] text-center">
             {Math.round(zoom * 100)}%
           </span>
           <Button
@@ -123,77 +124,60 @@ export function PDFViewer({ fileUrl, onProgressChange }: PDFViewerProps) {
             size="icon-sm"
             onClick={handleZoomIn}
             disabled={zoom >= 2.0}
-            className="hover:bg-accent/80 transition-all duration-200"
+            className="hover:bg-accent/80"
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handlePrevPage}
-            disabled={pageNumber <= 1}
-            className="hover:bg-accent/80 transition-all duration-200"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium tabular-nums min-w-[5rem] text-center">
-            <span className="text-foreground">{pageNumber}</span>
-            <span className="text-muted-foreground mx-1">/</span>
-            <span className="text-muted-foreground">{numPages || '—'}</span>
+        {numPages > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {numPages}페이지
           </span>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleNextPage}
-            disabled={pageNumber >= numPages}
-            className="hover:bg-accent/80 transition-all duration-200"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        )}
       </div>
 
-      {/* PDF Canvas */}
+      {/* PDF Canvas - Continuous Scroll */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto bg-gradient-to-br from-muted/30 to-muted/10"
-        style={{
-          scrollBehavior: 'smooth',
-        }}
+        className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-900"
       >
-        <div className="flex justify-center p-8">
-          <div
-            className="shadow-2xl rounded-sm overflow-hidden transition-all duration-300 ease-out"
-            style={{
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top center',
-            }}
-          >
-            <Document
-              file={fileUrl}
-              onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={onDocumentLoadError}
-              loading={
-                <div className="flex items-center justify-center min-h-[600px] bg-white">
-                  <div className="text-center space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                    <p className="text-sm text-muted-foreground">문서를 불러오는 중...</p>
-                  </div>
+        <div className="flex flex-col items-center py-4 px-6 gap-4">
+          <Document
+            file={fileUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+            loading={
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                  <p className="text-sm text-muted-foreground">문서를 불러오는 중...</p>
                 </div>
-              }
-              className="pdf-document"
-            >
-              <Page
-                pageNumber={pageNumber}
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-                className="pdf-page"
-              />
-            </Document>
-          </div>
+              </div>
+            }
+            className="pdf-document"
+          >
+            {/* Render all pages for continuous scroll */}
+            {Array.from(new Array(numPages), (_, index) => (
+              <div
+                key={`page_${index + 1}`}
+                className="shadow-lg rounded-sm overflow-hidden bg-white mb-4 last:mb-0"
+                style={{
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'top center',
+                  marginBottom: `${16 * zoom}px`,
+                }}
+              >
+                <Page
+                  pageNumber={index + 1}
+                  width={containerWidth > 0 ? containerWidth : undefined}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                  className="pdf-page"
+                />
+              </div>
+            ))}
+          </Document>
         </div>
       </div>
     </div>

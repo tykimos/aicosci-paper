@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { GripHorizontal } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PaperListSidebar } from '@/components/layout/paper-list-sidebar';
 import { PaperViewer } from '@/components/papers/paper-viewer';
@@ -10,18 +11,19 @@ import { ChatInterface } from '@/components/chat/chat-interface';
 import { useStatistics } from '@/hooks/use-statistics';
 import { cn } from '@/lib/utils';
 
-const MIN_CHAT_WIDTH = 280;
-const MAX_CHAT_WIDTH = 500;
-const DEFAULT_CHAT_WIDTH = 340;
+const MIN_CHAT_HEIGHT = 150;
+const MAX_CHAT_HEIGHT = 500;
+const DEFAULT_CHAT_HEIGHT = 280;
 
 export default function HomePage() {
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH);
+  const [chatHeight, setChatHeight] = useState(DEFAULT_CHAT_HEIGHT);
   const [isResizingChat, setIsResizingChat] = useState(false);
   const prevPaperIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const centerRef = useRef<HTMLDivElement>(null);
 
   // Statistics
   const stats = useStatistics();
@@ -46,7 +48,7 @@ export default function HomePage() {
     }
   }, [selectedPaperId, stats]);
 
-  // Chat panel resize handlers (horizontal)
+  // Chat panel resize handlers (vertical)
   const startResizingChat = useCallback(() => {
     setIsResizingChat(true);
   }, []);
@@ -57,11 +59,11 @@ export default function HomePage() {
 
   const resizeChat = useCallback(
     (e: MouseEvent) => {
-      if (isResizingChat && containerRef.current) {
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const newWidth = containerRect.right - e.clientX;
-        if (newWidth >= MIN_CHAT_WIDTH && newWidth <= MAX_CHAT_WIDTH) {
-          setChatWidth(newWidth);
+      if (isResizingChat && centerRef.current) {
+        const centerRect = centerRef.current.getBoundingClientRect();
+        const newHeight = centerRect.bottom - e.clientY;
+        if (newHeight >= MIN_CHAT_HEIGHT && newHeight <= MAX_CHAT_HEIGHT) {
+          setChatHeight(newHeight);
         }
       }
     },
@@ -108,63 +110,66 @@ export default function HomePage() {
           />
         )}
 
-        {/* Center: Paper Viewer + Survey (if paper selected) */}
-        <div className="flex-1 flex overflow-hidden" style={{ minWidth: 0 }}>
-          {/* Main Paper Viewer */}
-          <main className="flex-1 min-h-0 overflow-hidden" style={{ minWidth: '300px' }}>
-            <PaperViewer
-              paperId={selectedPaperId}
-              isFullscreen={isFullscreen}
-              onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-            />
-          </main>
+        {/* Center: Paper Viewer + Chat (bottom) */}
+        <div ref={centerRef} className="flex-1 flex flex-col overflow-hidden" style={{ minWidth: 0 }}>
+          {/* Top: Paper Viewer + Survey Sidebar */}
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            {/* Main Paper Viewer */}
+            <main className="flex-1 min-h-0 overflow-hidden">
+              <PaperViewer
+                paperId={selectedPaperId}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+              />
+            </main>
 
-          {/* Survey Sidebar - Only when paper is selected */}
-          {!isFullscreen && selectedPaperId && (
-            <SurveySidebar
-              paperId={selectedPaperId}
-              sessionId={sessionId}
-              onPaperSelect={setSelectedPaperId}
-              onSurveyComplete={handleSurveyComplete}
-            />
+            {/* Survey Sidebar - Only when paper is selected */}
+            {!isFullscreen && selectedPaperId && (
+              <SurveySidebar
+                paperId={selectedPaperId}
+                sessionId={sessionId}
+                onPaperSelect={setSelectedPaperId}
+                onSurveyComplete={handleSurveyComplete}
+              />
+            )}
+          </div>
+
+          {/* Bottom: Chat Panel */}
+          {!isFullscreen && (
+            <div
+              className="border-t flex flex-col shrink-0 bg-background"
+              style={{ height: chatHeight }}
+            >
+              {/* Resize Handle - Horizontal bar */}
+              <div
+                className={cn(
+                  'h-2 cursor-row-resize flex items-center justify-center hover:bg-primary/20 transition-colors group relative',
+                  isResizingChat && 'bg-primary/30'
+                )}
+                onMouseDown={startResizingChat}
+              >
+                {/* Elongated grab indicator */}
+                <div className={cn(
+                  'absolute w-16 h-1.5 rounded-full transition-all',
+                  isResizingChat
+                    ? 'bg-primary'
+                    : 'bg-slate-300 group-hover:bg-primary/60'
+                )} />
+              </div>
+
+              {/* Chat Interface */}
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <ChatInterface
+                  paperId={selectedPaperId}
+                  onSearchResults={handleSearchResults}
+                  onPaperSelect={setSelectedPaperId}
+                  sessionId={sessionId}
+                  onMessageSent={handleChatMessage}
+                />
+              </div>
+            </div>
           )}
         </div>
-
-        {/* Right Sidebar - Chat Panel */}
-        {!isFullscreen && (
-          <div
-            className="flex flex-row shrink-0 h-full bg-background border-l"
-            style={{ width: chatWidth, minWidth: MIN_CHAT_WIDTH }}
-          >
-            {/* Resize Handle - Elongated vertical bar */}
-            <div
-              className={cn(
-                'w-3 cursor-col-resize flex items-center justify-center hover:bg-primary/20 transition-colors group relative',
-                isResizingChat && 'bg-primary/30'
-              )}
-              onMouseDown={startResizingChat}
-            >
-              {/* Elongated grab indicator */}
-              <div className={cn(
-                'absolute h-16 w-1.5 rounded-full transition-all',
-                isResizingChat
-                  ? 'bg-primary'
-                  : 'bg-slate-300 group-hover:bg-primary/60'
-              )} />
-            </div>
-
-            {/* Chat Interface */}
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <ChatInterface
-                paperId={selectedPaperId}
-                onSearchResults={handleSearchResults}
-                onPaperSelect={setSelectedPaperId}
-                sessionId={sessionId}
-                onMessageSent={handleChatMessage}
-              />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
