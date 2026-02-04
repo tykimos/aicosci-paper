@@ -130,10 +130,14 @@ function buildSearchResultsModule(additionalData?: AdditionalContextData): strin
   }
 
   const results = additionalData.search_results
-    .map((r, i) => `${i + 1}. [${r.paper_id}] "${r.title}" - ${r.authors.join(', ')} (유사도: ${(r.score * 100).toFixed(1)}%)${r.snippet ? `\n   ${r.snippet}` : ''}`)
+    .map((r, i) => {
+      const tags = r.tags?.length ? `태그: ${r.tags.slice(0, 3).join(', ')}` : '';
+      return `${i + 1}. [[paper:${r.paper_id}|${r.title}]] - ${r.authors.slice(0, 2).join(', ')}${r.authors.length > 2 ? ' 외' : ''} (유사도: ${(r.score * 100).toFixed(1)}%)${tags ? `\n   ${tags}` : ''}${r.snippet ? `\n   ${r.snippet.slice(0, 150)}...` : ''}`;
+    })
     .join('\n');
 
   return `[SearchResults]
+논문 링크 형식: [[paper:논문ID|논문제목]] - 이 형식으로 논문을 추천하면 클릭 가능한 링크가 됩니다.
 ${results}
 `;
 }

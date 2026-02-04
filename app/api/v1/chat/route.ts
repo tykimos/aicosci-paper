@@ -25,46 +25,67 @@ import {
   type ChatRequest,
   type ChatResponse,
 } from '@/lib/orchestrator';
+import { hybridSearch } from '@/lib/search/hybrid-search';
 
 // Maximum chain depth to prevent infinite loops
 const MAX_CHAIN_DEPTH = 3;
 
 /**
- * Perform vector search on papers
+ * Perform hybrid search on papers (vector + keyword)
  */
 async function searchPapers(
   query: string,
   topK: number = 10
 ): Promise<SearchResult[]> {
   try {
-    const supabase = await createClient();
+    // Use hybrid search which combines vector and keyword search
+    const results = await hybridSearch(query, {
+      topK,
+      threshold: 0.5, // Lower threshold for more results
+      vectorWeight: 0.7,  // Prefer semantic similarity
+      keywordWeight: 0.3,
+    });
 
-    // Simple keyword search for now
-    // TODO: Implement vector search with embeddings
-    const { data, error } = await supabase
-      .from('papers')
-      .select('id, title, authors, abstract, tags')
-      .is('deleted_at', null)
-      .or(`title.ilike.%${query}%,abstract.ilike.%${query}%`)
-      .limit(topK);
-
-    if (error) {
-      console.error('[Chat] Search error:', error);
-      return [];
-    }
-
-    const papers = (data || []) as Pick<Paper, 'id' | 'title' | 'authors' | 'abstract' | 'tags'>[];
-
-    return papers.map((paper, index) => ({
-      paper_id: paper.id,
-      title: paper.title,
-      authors: paper.authors || [],
-      score: 1 - index * 0.1, // Simple relevance score
-      snippet: paper.abstract?.slice(0, 200),
+    return results.map((result) => ({
+      paper_id: result.paper.id,
+      title: result.paper.title,
+      authors: result.paper.authors || [],
+      score: result.score,
+      snippet: result.matchedChunks?.[0]?.content || result.paper.abstract?.slice(0, 200),
+      tags: result.paper.tags || [],
     }));
   } catch (error) {
-    console.error('[Chat] Search failed:', error);
-    return [];
+    console.error('[Chat] Hybrid search failed, falling back to keyword search:', error);
+
+    // Fallback to simple keyword search
+    try {
+      const supabase = await createClient();
+      const { data, error: dbError } = await supabase
+        .from('papers')
+        .select('id, title, authors, abstract, tags')
+        .is('deleted_at', null)
+        .or(`title.ilike.%${query}%,abstract.ilike.%${query}%`)
+        .limit(topK);
+
+      if (dbError) {
+        console.error('[Chat] Fallback search error:', dbError);
+        return [];
+      }
+
+      const papers = (data || []) as Pick<Paper, 'id' | 'title' | 'authors' | 'abstract' | 'tags'>[];
+
+      return papers.map((paper, index) => ({
+        paper_id: paper.id,
+        title: paper.title,
+        authors: paper.authors || [],
+        score: 1 - index * 0.1,
+        snippet: paper.abstract?.slice(0, 200),
+        tags: paper.tags || [],
+      }));
+    } catch (fallbackError) {
+      console.error('[Chat] Fallback search failed:', fallbackError);
+      return [];
+    }
   }
 }
 

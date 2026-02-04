@@ -105,6 +105,7 @@ export interface SearchResult {
   authors: string[];
   score: number;
   snippet?: string;
+  tags?: string[];
 }
 
 export interface SurveyResponse {

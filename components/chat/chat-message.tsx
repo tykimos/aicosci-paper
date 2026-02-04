@@ -29,8 +29,105 @@ function cleanContent(text: string): string {
     .trim();
 }
 
-// Simple markdown-like text rendering
-function formatText(text: string) {
+// Parse paper links from text [[paper:id|title]] -> clickable link
+function parsePaperLinks(
+  text: string,
+  onPaperClick: (paperId: string) => void
+): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /\[\[paper:([^|]+)\|([^\]]+)\]\]/g;
+  let lastIndex = 0;
+  let match;
+  let keyIndex = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    const paperId = match[1];
+    const paperTitle = match[2];
+
+    // Add clickable paper link
+    parts.push(
+      <button
+        key={`paper-link-${keyIndex++}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onPaperClick(paperId);
+        }}
+        className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors text-sm font-medium cursor-pointer border border-primary/20"
+      >
+        <FileText className="w-3 h-3" />
+        <span className="underline-offset-2 hover:underline">{paperTitle}</span>
+      </button>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : [text];
+}
+
+// Process inline formatting (bold, paper links)
+function processInlineFormatting(
+  text: string,
+  onPaperClick: (paperId: string) => void
+): React.ReactNode[] {
+  const result: React.ReactNode[] = [];
+
+  // First parse paper links
+  const withPaperLinks = parsePaperLinks(text, onPaperClick);
+
+  for (const part of withPaperLinks) {
+    if (typeof part !== 'string') {
+      result.push(part);
+      continue;
+    }
+
+    // Process bold formatting
+    let processed: React.ReactNode[] = [];
+    let lastIndex = 0;
+    const boldRegex = /\*\*(.+?)\*\*/g;
+    let match;
+    let keyIndex = 0;
+
+    while ((match = boldRegex.exec(part)) !== null) {
+      if (match.index > lastIndex) {
+        processed.push(part.slice(lastIndex, match.index));
+      }
+      processed.push(
+        <strong key={`bold-${keyIndex++}`} className="font-semibold">
+          {match[1]}
+        </strong>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < part.length) {
+      processed.push(part.slice(lastIndex));
+    }
+
+    result.push(...(processed.length > 0 ? processed : [part]));
+  }
+
+  return result;
+}
+
+// Simple markdown-like text rendering with paper links
+function FormatText({
+  text,
+  onPaperClick,
+}: {
+  text: string;
+  onPaperClick: (paperId: string) => void;
+}) {
   // First clean any internal tags
   const cleanedText = cleanContent(text);
   // Split by code blocks first
@@ -52,13 +149,13 @@ function formatText(text: string) {
         if (para.startsWith('## ')) {
           elements.push(
             <h2 key={`${i}-${pIdx}-h2`} className="text-lg font-semibold mt-4 mb-2">
-              {para.slice(3)}
+              {processInlineFormatting(para.slice(3), onPaperClick)}
             </h2>
           );
         } else if (para.startsWith('# ')) {
           elements.push(
             <h1 key={`${i}-${pIdx}-h1`} className="text-xl font-bold mt-4 mb-2">
-              {para.slice(2)}
+              {processInlineFormatting(para.slice(2), onPaperClick)}
             </h1>
           );
         } else {
@@ -70,7 +167,7 @@ function formatText(text: string) {
               return (
                 <div key={lIdx} className="flex gap-2 ml-4">
                   <span className="text-foreground/60 select-none">•</span>
-                  <span>{line.trim().slice(2)}</span>
+                  <span>{processInlineFormatting(line.trim().slice(2), onPaperClick)}</span>
                 </div>
               );
             }
@@ -83,36 +180,17 @@ function formatText(text: string) {
                   <span className="text-foreground/60 select-none min-w-[1.5rem]">
                     {numberedMatch[1]}.
                   </span>
-                  <span>{numberedMatch[2]}</span>
+                  <span>{processInlineFormatting(numberedMatch[2], onPaperClick)}</span>
                 </div>
               );
             }
 
-            // Regular line with inline formatting
-            let processed: React.ReactNode[] = [];
-            let lastIndex = 0;
-
-            // Bold **text**
-            const boldRegex = /\*\*(.+?)\*\*/g;
-            let match;
-
-            while ((match = boldRegex.exec(line)) !== null) {
-              if (match.index > lastIndex) {
-                processed.push(line.slice(lastIndex, match.index));
-              }
-              processed.push(
-                <strong key={`bold-${match.index}`} className="font-semibold">
-                  {match[1]}
-                </strong>
-              );
-              lastIndex = match.index + match[0].length;
-            }
-
-            if (lastIndex < line.length) {
-              processed.push(line.slice(lastIndex));
-            }
-
-            return <div key={lIdx}>{processed.length > 0 ? processed : line}</div>;
+            // Regular line
+            return (
+              <div key={lIdx}>
+                {processInlineFormatting(line, onPaperClick)}
+              </div>
+            );
           });
 
           elements.push(
@@ -142,7 +220,7 @@ function formatText(text: string) {
     }
   }
 
-  return elements;
+  return <>{elements}</>;
 }
 
 export function ChatMessage({ message, onPaperSelect }: ChatMessageProps) {
@@ -181,12 +259,12 @@ export function ChatMessage({ message, onPaperSelect }: ChatMessageProps) {
             </p>
           ) : (
             <div className="text-[15px] leading-relaxed space-y-3 prose prose-sm max-w-none dark:prose-invert">
-              {formatText(message.content)}
+              <FormatText text={message.content} onPaperClick={onPaperSelect} />
             </div>
           )}
         </div>
 
-        {/* Paper recommendations */}
+        {/* Paper recommendations (card style) */}
         {message.papers && message.papers.length > 0 && (
           <div className="space-y-2 w-full animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
             <div className="text-xs font-medium text-muted-foreground px-1 tracking-wide uppercase">
