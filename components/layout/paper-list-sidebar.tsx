@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -176,8 +175,8 @@ export function PaperListSidebar({
         </div>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 w-full">
-        <div className="px-4 pb-8 space-y-2 pr-6">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        <div className="p-4 pt-0 space-y-2 pb-8">
           {isLoading ? (
             [...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-24 w-full" />
@@ -249,7 +248,7 @@ export function PaperListSidebar({
             })
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Resize Handle - Elongated vertical bar */}
       <div
