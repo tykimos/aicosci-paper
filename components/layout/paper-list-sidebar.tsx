@@ -121,10 +121,10 @@ export function PaperListSidebar({
   return (
     <aside
       ref={sidebarRef}
-      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative h-full"
-      style={{ width: sidebarWidth, maxHeight: '100vh' }}
+      className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative h-full overflow-hidden"
+      style={{ width: sidebarWidth, minWidth: MIN_WIDTH, maxWidth: MAX_WIDTH }}
     >
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 flex-shrink-0">
         {/* 검색 */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -176,8 +176,8 @@ export function PaperListSidebar({
         </div>
       </div>
 
-      <ScrollArea className="flex-1 overflow-hidden">
-        <div className="p-4 pt-0 space-y-2 pb-8">
+      <ScrollArea className="flex-1 min-h-0 w-full">
+        <div className="px-4 pb-8 space-y-2 pr-6">
           {isLoading ? (
             [...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-24 w-full" />
@@ -196,7 +196,7 @@ export function PaperListSidebar({
                 <div
                   key={paper.id}
                   className={cn(
-                    'group p-3 cursor-pointer transition-all duration-150 rounded-lg border-2 shadow-sm',
+                    'group p-3 cursor-pointer transition-all duration-150 rounded-lg border-2 shadow-sm overflow-hidden',
                     isSelected
                       ? 'bg-primary/10 border-primary shadow-md'
                       : viewed
@@ -207,7 +207,7 @@ export function PaperListSidebar({
                 >
                   {/* Title */}
                   <h3 className={cn(
-                    'text-sm leading-snug line-clamp-2',
+                    'text-sm leading-snug line-clamp-2 break-words',
                     isSelected ? 'font-medium text-foreground' : viewed ? 'text-muted-foreground' : 'text-foreground'
                   )}>
                     {paper.title}
