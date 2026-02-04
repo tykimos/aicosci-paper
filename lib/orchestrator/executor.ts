@@ -151,7 +151,7 @@ export async function executeSkill(
       model: AZURE_OPENAI_DEPLOYMENT,
       messages,
       temperature: 0.7,
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
     });
 
     const rawResponse = response.choices[0]?.message?.content || '';
@@ -214,7 +214,7 @@ export async function executeSkillStream(
           model: AZURE_OPENAI_DEPLOYMENT,
           messages,
           temperature: 0.7,
-          max_tokens: 2000,
+          max_completion_tokens: 2000,
           stream: true,
         });
 
