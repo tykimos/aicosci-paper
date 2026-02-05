@@ -38,13 +38,17 @@ async function searchPapers(
   topK: number = 10
 ): Promise<SearchResult[]> {
   try {
+    console.log(`[Chat] Hybrid search for: "${query}"`);
+
     // Use hybrid search which combines vector and keyword search
     const results = await hybridSearch(query, {
       topK,
-      threshold: 0.5, // Lower threshold for more results
+      threshold: 0.3, // Lower threshold for more results
       vectorWeight: 0.7,  // Prefer semantic similarity
       keywordWeight: 0.3,
     });
+
+    console.log(`[Chat] Hybrid search returned ${results.length} results`);
 
     return results.map((result) => ({
       paper_id: result.paper.id,
@@ -73,6 +77,7 @@ async function searchPapers(
       }
 
       const papers = (data || []) as Pick<Paper, 'id' | 'title' | 'authors' | 'abstract' | 'tags'>[];
+      console.log(`[Chat] Fallback search returned ${papers.length} papers`);
 
       return papers.map((paper, index) => ({
         paper_id: paper.id,
@@ -188,25 +193,28 @@ async function handleChat(request: ChatRequest): Promise<ChatResponse> {
       }
     }
 
-    // Perform search if needed
-    if (
-      orchestration.query &&
-      orchestration.requires.some((r) =>
-        ['vector_search', 'keyword_search'].includes(r)
-      )
-    ) {
-      searchResults = await searchPapers(orchestration.query);
+    // Perform search if needed - for any skill that requires vector_search
+    if (orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
+      // Generate search query from user message or use default
+      const searchQuery = orchestration.query || message || 'AI 과학 연구';
+      console.log(`[Chat] Searching with query: "${searchQuery}"`);
+      searchResults = await searchPapers(searchQuery, 10);
+      console.log(`[Chat] Search returned ${searchResults.length} results`);
+      if (searchResults.length > 0) {
+        console.log(`[Chat] First result: ${searchResults[0].title} (ID: ${searchResults[0].paper_id})`);
+      }
       additionalContextData.search_results = searchResults;
-    }
 
-    // Get recommendations if needed
-    if (orchestration.requires.some((r) => r === 'vector_search' || r === 'reading_history')) {
-      if (orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete') {
-        // Use search results or get random papers
-        recommendedPapers = searchResults.length > 0
-          ? searchResults.slice(0, 5)
-          : await searchPapers('AI machine learning', 5);
-        additionalContextData.search_results = recommendedPapers;
+      // For recommendation skills, ensure we have papers
+      if (
+        (orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete') &&
+        searchResults.length === 0
+      ) {
+        // Try with broader query
+        console.log('[Chat] No results, trying broader query "인공지능"');
+        searchResults = await searchPapers('인공지능', 10);
+        console.log(`[Chat] Broader search returned ${searchResults.length} results`);
+        additionalContextData.search_results = searchResults;
       }
     }
 
@@ -321,9 +329,15 @@ async function handleStreamingChat(request: ChatRequest): Promise<Response> {
     }
   }
 
-  // Perform search if needed
-  if (orchestration.query && orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
-    const searchResults = await searchPapers(orchestration.query);
+  // Perform search if needed - for any skill that requires vector_search
+  if (orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
+    const searchQuery = orchestration.query || message || 'AI 과학 연구';
+    let searchResults = await searchPapers(searchQuery, 10);
+
+    // For recommendation skills, ensure we have papers
+    if (searchResults.length === 0) {
+      searchResults = await searchPapers('인공지능', 10);
+    }
     additionalContextData.search_results = searchResults;
   }
 

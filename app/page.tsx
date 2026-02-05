@@ -165,6 +165,8 @@ export default function HomePage() {
                   onPaperSelect={setSelectedPaperId}
                   sessionId={sessionId}
                   onMessageSent={handleChatMessage}
+                  paperReadCount={stats.cumulative.totalPaperViews}
+                  surveyCompleteCount={stats.cumulative.totalSurveys}
                 />
               </div>
             </div>

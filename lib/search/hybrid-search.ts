@@ -244,17 +244,21 @@ export async function hybridSearch(
 
   const trimmedQuery = query.trim();
 
+  console.log(`[HybridSearch] Query: "${trimmedQuery}", threshold: ${threshold}`);
+
   // Execute both searches in parallel
   const [vectorResults, keywordResults] = await Promise.all([
     vectorSearch(trimmedQuery, { topK, paperId, threshold }).catch(error => {
-      console.error('Vector search failed:', error);
+      console.error('[HybridSearch] Vector search failed:', error);
       return [] as VectorResult[];
     }),
     keywordSearch(trimmedQuery, { topK, paperId }).catch(error => {
-      console.error('Keyword search failed:', error);
+      console.error('[HybridSearch] Keyword search failed:', error);
       return [] as KeywordResult[];
     }),
   ]);
+
+  console.log(`[HybridSearch] Vector results: ${vectorResults.length}, Keyword results: ${keywordResults.length}`);
 
   // Convert to maps for easier lookup
   const vectorMap = new Map(vectorResults.map(r => [r.paper_id, r]));

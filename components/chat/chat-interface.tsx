@@ -24,6 +24,8 @@ interface ChatInterfaceProps {
   onPaperSelect: (paperId: string) => void;
   sessionId: string;
   onMessageSent?: () => void;
+  paperReadCount?: number;
+  surveyCompleteCount?: number;
 }
 
 export function ChatInterface({
@@ -32,11 +34,15 @@ export function ChatInterface({
   onPaperSelect,
   sessionId,
   onMessageSent,
+  paperReadCount = 0,
+  surveyCompleteCount = 0,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
+  const [lastReadCount, setLastReadCount] = useState(paperReadCount);
+  const [lastSurveyCount, setLastSurveyCount] = useState(surveyCompleteCount);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +55,46 @@ export function ChatInterface({
       }
     }
   }, [messages]);
+
+  // Paper read hook - encourage user when they read papers
+  useEffect(() => {
+    if (paperReadCount > lastReadCount && !isStreaming && messages.length > 0) {
+      setLastReadCount(paperReadCount);
+      // Add encouragement message for paper reading
+      const encourageMessages = [
+        `대단해요! 벌써 ${paperReadCount}번째 논문을 살펴보고 계시네요! 🎉`,
+        `훌륭해요! 논문을 꼼꼼히 살펴보시는 모습이 인상적이에요!`,
+        `와! 연구에 대한 관심이 느껴집니다! 계속 파이팅! 💪`,
+      ];
+      const randomMsg = encourageMessages[Math.floor(Math.random() * encourageMessages.length)];
+
+      if (paperReadCount % 3 === 0) { // Every 3 papers
+        const encourageMessage: Message = {
+          id: `encourage-${Date.now()}`,
+          role: 'assistant',
+          content: `${randomMsg}\n\n현재까지 ${paperReadCount}개의 논문을 확인하셨어요. 설문도 함께 참여해 주시면 더욱 감사하겠습니다!`,
+          timestamp: new Date(),
+          promptButtons: ['설문 참여하기', '다음 논문 추천해줘'],
+        };
+        setMessages((prev) => [...prev, encourageMessage]);
+      }
+    }
+  }, [paperReadCount, lastReadCount, isStreaming, messages.length]);
+
+  // Survey complete hook - encourage user when they complete surveys
+  useEffect(() => {
+    if (surveyCompleteCount > lastSurveyCount && !isStreaming && messages.length > 0) {
+      setLastSurveyCount(surveyCompleteCount);
+      const celebrateMessage: Message = {
+        id: `celebrate-${Date.now()}`,
+        role: 'assistant',
+        content: `정말 멋져요! 🎊 ${surveyCompleteCount}번째 설문을 완료하셨네요!\n\n여러분의 소중한 피드백이 AI 과학 연구 발전에 큰 기여가 됩니다. 진심으로 감사드립니다!`,
+        timestamp: new Date(),
+        promptButtons: ['다른 논문 보기', '추천 논문 알려줘'],
+      };
+      setMessages((prev) => [...prev, celebrateMessage]);
+    }
+  }, [surveyCompleteCount, lastSurveyCount, isStreaming, messages.length]);
 
   // Site enter hook - trigger greeting on first visit
   useEffect(() => {
@@ -293,7 +339,7 @@ export function ChatInterface({
                message.promptButtons.length > 0 &&
                !message.isStreaming &&
                idx === messages.length - 1 && (
-                <div className="mt-2 ml-11 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {message.promptButtons.map((btn, i) => (
                     <button
                       key={i}

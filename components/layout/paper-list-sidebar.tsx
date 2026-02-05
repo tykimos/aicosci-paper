@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Eye } from 'lucide-react';
+import { Eye, EyeOff, ClipboardCheck, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
 import type { Paper } from '@/types/database';
@@ -24,12 +23,12 @@ export function PaperListSidebar({
 }: PaperListSidebarProps) {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
-  const [showViewedOnly, setShowViewedOnly] = useState(false);
+  // Filter states: null = all, 'viewed' = read only, 'unviewed' = unread only, 'surveyed' = surveyed only
+  const [viewFilter, setViewFilter] = useState<'all' | 'viewed' | 'unviewed' | 'surveyed'>('all');
   const sidebarRef = useRef<HTMLElement>(null);
 
   const { isViewed, markAsViewed, viewedCount } = useViewedPapers();
@@ -40,7 +39,6 @@ export function PaperListSidebar({
       setIsLoading(true);
       try {
         const params = new URLSearchParams();
-        if (search) params.set('search', search);
         if (selectedTag) params.append('tags', selectedTag);
         params.set('limit', '100');
 
@@ -61,9 +59,8 @@ export function PaperListSidebar({
       }
     };
 
-    const debounce = setTimeout(fetchPapers, 300);
-    return () => clearTimeout(debounce);
-  }, [search, selectedTag]);
+    fetchPapers();
+  }, [selectedTag]);
 
   // Mark paper as viewed when selected
   useEffect(() => {
@@ -106,16 +103,26 @@ export function PaperListSidebar({
     };
   }, [isResizing, resize, stopResizing]);
 
-  // Filter and sort papers - viewed papers go to bottom
-  const filteredPapers = showViewedOnly
-    ? papers.filter((p) => isViewed(p.id))
-    : [...papers].sort((a, b) => {
-        const aViewed = isViewed(a.id);
-        const bViewed = isViewed(b.id);
-        if (aViewed && !bViewed) return 1; // a goes to bottom
-        if (!aViewed && bViewed) return -1; // b goes to bottom
-        return 0; // maintain original order
-      });
+  // Filter papers based on viewFilter
+  const filteredPapers = papers.filter((p) => {
+    const viewed = isViewed(p.id);
+    const surveyed = isSurveyCompleted(p.id);
+
+    switch (viewFilter) {
+      case 'viewed':
+        return viewed;
+      case 'unviewed':
+        return !viewed;
+      case 'surveyed':
+        return surveyed;
+      default:
+        return true;
+    }
+  });
+
+  // Count for badges
+  const unviewedCount = papers.filter((p) => !isViewed(p.id)).length;
+  const surveyedCount = papers.filter((p) => isSurveyCompleted(p.id)).length;
 
   return (
     <aside
@@ -123,56 +130,63 @@ export function PaperListSidebar({
       className="shrink-0 border-r bg-sidebar hidden lg:flex flex-col relative h-full overflow-hidden"
       style={{ width: sidebarWidth, minWidth: MIN_WIDTH, maxWidth: MAX_WIDTH }}
     >
-      <div className="p-4 space-y-4 flex-shrink-0">
-        {/* 검색 */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="필터..."
-            className="pl-9 h-9 w-full"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="p-4 space-y-3 flex-shrink-0">
+        {/* 필터 헤더 */}
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Filter className="h-4 w-4" />
+          <span>필터</span>
         </div>
 
-        {/* 태그 필터 */}
-        <div className="flex flex-wrap gap-1 overflow-hidden">
+        {/* 상태 필터 */}
+        <div className="flex flex-wrap gap-1.5">
           <Badge
-            variant={selectedTag === null && !showViewedOnly ? 'secondary' : 'outline'}
+            variant={viewFilter === 'all' ? 'secondary' : 'outline'}
             className="cursor-pointer hover:bg-secondary/80 shrink-0"
-            onClick={() => {
-              setSelectedTag(null);
-              setShowViewedOnly(false);
-            }}
+            onClick={() => setViewFilter('all')}
           >
-            전체
+            전체 ({papers.length})
           </Badge>
           <Badge
-            variant={showViewedOnly ? 'secondary' : 'outline'}
+            variant={viewFilter === 'unviewed' ? 'secondary' : 'outline'}
             className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1"
-            onClick={() => {
-              setShowViewedOnly(!showViewedOnly);
-              if (!showViewedOnly) setSelectedTag(null);
-            }}
+            onClick={() => setViewFilter('unviewed')}
+          >
+            <EyeOff className="h-3 w-3" />
+            안읽음 ({unviewedCount})
+          </Badge>
+          <Badge
+            variant={viewFilter === 'viewed' ? 'secondary' : 'outline'}
+            className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1"
+            onClick={() => setViewFilter('viewed')}
           >
             <Eye className="h-3 w-3" />
             읽음 ({viewedCount})
           </Badge>
-          {tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant={selectedTag === tag ? 'secondary' : 'outline'}
-              className="cursor-pointer hover:bg-accent shrink-0 max-w-[120px] truncate"
-              onClick={() => {
-                setSelectedTag(tag === selectedTag ? null : tag);
-                setShowViewedOnly(false);
-              }}
-            >
-              #{tag}
-            </Badge>
-          ))}
+          <Badge
+            variant={viewFilter === 'surveyed' ? 'secondary' : 'outline'}
+            className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1"
+            onClick={() => setViewFilter('surveyed')}
+          >
+            <ClipboardCheck className="h-3 w-3" />
+            설문완료 ({surveyedCount})
+          </Badge>
         </div>
+
+        {/* 태그 필터 */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-2 border-t">
+            {tags.map((tag) => (
+              <Badge
+                key={tag}
+                variant={selectedTag === tag ? 'secondary' : 'outline'}
+                className="cursor-pointer hover:bg-accent shrink-0 max-w-[120px] truncate text-xs"
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+              >
+                #{tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
@@ -183,7 +197,10 @@ export function PaperListSidebar({
             ))
           ) : filteredPapers.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              {showViewedOnly ? '읽은 논문이 없습니다.' : '논문이 없습니다.'}
+              {viewFilter === 'viewed' && '읽은 논문이 없습니다.'}
+              {viewFilter === 'unviewed' && '모든 논문을 읽었습니다!'}
+              {viewFilter === 'surveyed' && '설문 완료한 논문이 없습니다.'}
+              {viewFilter === 'all' && '논문이 없습니다.'}
             </p>
           ) : (
             filteredPapers.map((paper) => {
@@ -227,7 +244,6 @@ export function PaperListSidebar({
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedTag(tag === selectedTag ? null : tag);
-                            setShowViewedOnly(false);
                           }}
                         >
                           #{tag}

@@ -140,66 +140,106 @@ function FormatText({
       const textPart = parts[i];
       if (!textPart) continue;
 
-      // Split into paragraphs
-      const paragraphs = textPart.split('\n\n');
-      paragraphs.forEach((para, pIdx) => {
-        if (!para.trim()) return;
+      // Split into lines and process each
+      const lines = textPart.split('\n');
+      let currentParagraph: React.ReactNode[] = [];
+      let paragraphKey = 0;
 
-        // Check for headers
-        if (para.startsWith('## ')) {
+      const flushParagraph = () => {
+        if (currentParagraph.length > 0) {
           elements.push(
-            <h2 key={`${i}-${pIdx}-h2`} className="text-lg font-semibold mt-4 mb-2">
-              {processInlineFormatting(para.slice(3), onPaperClick)}
-            </h2>
-          );
-        } else if (para.startsWith('# ')) {
-          elements.push(
-            <h1 key={`${i}-${pIdx}-h1`} className="text-xl font-bold mt-4 mb-2">
-              {processInlineFormatting(para.slice(2), onPaperClick)}
-            </h1>
-          );
-        } else {
-          // Process inline formatting
-          const lines = para.split('\n');
-          const formattedLines = lines.map((line, lIdx) => {
-            // Handle bullet points
-            if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-              return (
-                <div key={lIdx} className="flex gap-2 ml-4">
-                  <span className="text-foreground/60 select-none">•</span>
-                  <span>{processInlineFormatting(line.trim().slice(2), onPaperClick)}</span>
-                </div>
-              );
-            }
-
-            // Handle numbered lists
-            const numberedMatch = line.trim().match(/^(\d+)\.\s+(.+)$/);
-            if (numberedMatch) {
-              return (
-                <div key={lIdx} className="flex gap-2 ml-4">
-                  <span className="text-foreground/60 select-none min-w-[1.5rem]">
-                    {numberedMatch[1]}.
-                  </span>
-                  <span>{processInlineFormatting(numberedMatch[2], onPaperClick)}</span>
-                </div>
-              );
-            }
-
-            // Regular line
-            return (
-              <div key={lIdx}>
-                {processInlineFormatting(line, onPaperClick)}
-              </div>
-            );
-          });
-
-          elements.push(
-            <p key={`${i}-${pIdx}`} className="leading-relaxed space-y-1">
-              {formattedLines}
+            <p key={`${i}-p-${paragraphKey++}`} className="leading-relaxed space-y-1">
+              {currentParagraph}
             </p>
           );
+          currentParagraph = [];
         }
+      };
+
+      lines.forEach((line, lIdx) => {
+        const trimmedLine = line.trim();
+
+        // Empty line - flush paragraph
+        if (!trimmedLine) {
+          flushParagraph();
+          return;
+        }
+
+        // Horizontal rule
+        if (trimmedLine === '---' || trimmedLine === '***' || trimmedLine === '___') {
+          flushParagraph();
+          elements.push(<hr key={`${i}-hr-${lIdx}`} className="my-3 border-border" />);
+          return;
+        }
+
+        // H1 header
+        if (trimmedLine.startsWith('# ')) {
+          flushParagraph();
+          elements.push(
+            <h1 key={`${i}-h1-${lIdx}`} className="text-xl font-bold mt-4 mb-2">
+              {processInlineFormatting(trimmedLine.slice(2), onPaperClick)}
+            </h1>
+          );
+          return;
+        }
+
+        // H2 header
+        if (trimmedLine.startsWith('## ')) {
+          flushParagraph();
+          elements.push(
+            <h2 key={`${i}-h2-${lIdx}`} className="text-lg font-semibold mt-4 mb-2">
+              {processInlineFormatting(trimmedLine.slice(3), onPaperClick)}
+            </h2>
+          );
+          return;
+        }
+
+        // H3 header
+        if (trimmedLine.startsWith('### ')) {
+          flushParagraph();
+          elements.push(
+            <h3 key={`${i}-h3-${lIdx}`} className="text-base font-semibold mt-3 mb-1">
+              {processInlineFormatting(trimmedLine.slice(4), onPaperClick)}
+            </h3>
+          );
+          return;
+        }
+
+        // Bullet points
+        if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+          currentParagraph.push(
+            <div key={`line-${lIdx}`} className="flex gap-2 ml-4">
+              <span className="text-foreground/60 select-none">•</span>
+              <span>{processInlineFormatting(trimmedLine.slice(2), onPaperClick)}</span>
+            </div>
+          );
+          return;
+        }
+
+        // Numbered lists
+        const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)$/);
+        if (numberedMatch) {
+          currentParagraph.push(
+            <div key={`line-${lIdx}`} className="flex gap-2 ml-4">
+              <span className="text-foreground/60 select-none min-w-[1.5rem]">
+                {numberedMatch[1]}.
+              </span>
+              <span>{processInlineFormatting(numberedMatch[2], onPaperClick)}</span>
+            </div>
+          );
+          return;
+        }
+
+        // Regular line
+        currentParagraph.push(
+          <div key={`line-${lIdx}`}>
+            {processInlineFormatting(line, onPaperClick)}
+          </div>
+        );
       });
+
+      // Flush remaining paragraph
+      flushParagraph();
     } else if (i % 3 === 1) {
       // Language identifier (skip)
       continue;
@@ -229,32 +269,21 @@ export function ChatMessage({ message, onPaperSelect }: ChatMessageProps) {
   return (
     <div
       className={`flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
-        isUser ? 'flex-row-reverse' : ''
+        isUser ? 'justify-end' : 'justify-start'
       }`}
     >
-      {/* Avatar */}
-      <div
-        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 ${
-          isUser
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'bg-muted text-muted-foreground border border-border'
-        }`}
-      >
-        {isUser ? 'You' : 'AI'}
-      </div>
-
       {/* Content */}
-      <div className={`flex-1 min-w-0 space-y-3 ${isUser ? 'flex flex-col items-end' : ''}`}>
+      <div className={`space-y-3 max-w-[85%] ${isUser ? 'flex flex-col items-end' : ''}`}>
         {/* Text message */}
         <div
-          className={`inline-block max-w-[85%] rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
+          className={`inline-block rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
             isUser
               ? 'bg-primary text-primary-foreground rounded-tr-sm'
               : 'bg-muted text-foreground rounded-tl-sm border border-border/50'
           }`}
         >
           {isUser ? (
-            <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+            <p className="text-[15px] leading-relaxed whitespace-pre-wrap">
               {message.content}
             </p>
           ) : (

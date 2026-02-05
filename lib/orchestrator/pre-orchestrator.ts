@@ -55,7 +55,7 @@ function loadSkillRegistry(): SkillRegistry {
         skill_id: 'general_chat',
         description: '일반 대화 및 질문 응답',
         triggers: ['default'],
-        requires: ['conversation_history'],
+        requires: ['conversation_history', 'vector_search'],
         budget: { context_tokens: 3000, history_turns: 6 },
       },
     ],
