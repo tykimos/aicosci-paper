@@ -56,18 +56,20 @@ export function useLocalStorage<T>(
  * User profile stored in localStorage
  */
 export interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-  affiliation: string; // 소속
+  birthYear: string; // 생년
+  organization: string; // 소속 (대학, 출연(연), 기업, 기타 비영리, 기타)
+  organizationOther: string; // 소속 기타 직접 입력
+  affiliationType: string; // 소속/현재 상황
+  researchFrequency: string; // 논문/연구 자료 접하는 빈도
   updatedAt: string;
 }
 
 const DEFAULT_PROFILE: UserProfile = {
-  name: '',
-  email: '',
-  phone: '',
-  affiliation: '',
+  birthYear: String(new Date().getFullYear() - 25),
+  organization: '',
+  organizationOther: '',
+  affiliationType: '',
+  researchFrequency: '',
   updatedAt: '',
 };
 
@@ -91,7 +93,7 @@ export function useUserProfile() {
     [setProfile]
   );
 
-  const hasProfile = profile.name.trim().length > 0 || profile.email.trim().length > 0;
+  const hasProfile = profile.birthYear.trim().length > 0 || profile.organization.trim().length > 0 || profile.affiliationType.trim().length > 0 || profile.researchFrequency.trim().length > 0;
 
   return {
     profile,

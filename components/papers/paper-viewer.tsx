@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
-import { Maximize2, Minimize2, Download, Loader2 } from 'lucide-react';
+import { Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import type { Paper } from '@/types/database';
 
 // Dynamic imports to avoid SSR issues with PDF.js
@@ -81,25 +81,6 @@ export function PaperViewer({
 
     fetchPaper();
   }, [paperId]);
-
-  const handleDownload = async () => {
-    if (!paper) return;
-
-    try {
-      const response = await fetch(paper.file_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${paper.title}.${paper.file_type}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download failed:', err);
-    }
-  };
 
   const handleProgressChange = (percent: number) => {
     setReadingProgress(percent);
@@ -225,15 +206,6 @@ export function PaperViewer({
             </div>
           )}
 
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleDownload}
-            className="hover:bg-accent/80 transition-all duration-200"
-            title="다운로드"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
           <Button
             variant="ghost"
             size="icon-sm"
