@@ -240,7 +240,7 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId,
+          session_id: sessionId,
           responses,
           userProfile: hasProfile ? profileForm : undefined,
         }),
