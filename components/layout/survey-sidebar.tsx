@@ -500,24 +500,18 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
                           <p className="text-xs font-medium text-foreground/80">{item}</p>
                           <div className="flex flex-wrap gap-1">
                             {MATRIX_SCALES.map((scale) => (
-                              <label
+                              <button
                                 key={scale}
+                                type="button"
+                                onClick={() => handleMatrixChange(item, scale)}
                                 className={`text-xs cursor-pointer border rounded px-2 py-1 transition-colors ${
                                   matrixAnswers[item] === scale
                                     ? 'bg-primary text-primary-foreground border-primary'
                                     : 'hover:bg-accent border-input'
                                 }`}
                               >
-                                <input
-                                  type="radio"
-                                  name={`matrix-${item}`}
-                                  value={scale}
-                                  checked={matrixAnswers[item] === scale}
-                                  onChange={() => handleMatrixChange(item, scale)}
-                                  className="sr-only"
-                                />
                                 {scale}
-                              </label>
+                              </button>
                             ))}
                           </div>
                         </div>
