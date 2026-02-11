@@ -1,6 +1,5 @@
 'use client';
 
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -287,8 +286,7 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
   );
 
   return (
-    <aside className="w-80 shrink-0 border-l bg-sidebar hidden xl:block overflow-hidden">
-      <ScrollArea className="h-full">
+    <aside className="w-80 shrink-0 border-l bg-sidebar hidden xl:block overflow-y-auto h-full">
         <div className="p-4 space-y-4">
           {/* 1. 개인 설문 섹션 */}
           <Card>
@@ -653,7 +651,6 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
             총 {surveyCount}명이 설문에 참여했습니다
           </div>
         </div>
-      </ScrollArea>
     </aside>
   );
 }
