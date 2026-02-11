@@ -246,15 +246,26 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
         }),
       });
 
-      if (response.ok) {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         setIsSubmitted(true);
         setSurveyCount((prev) => prev + 1);
+        // 폼 초기화
+        setAnswers({});
+        setMatrixAnswers({});
+        setCheckboxAnswers({});
+        setImprovementOther('');
         markSurveyCompleted(paperId);
         onSurveyComplete?.();
         fetchRecommendations();
+      } else {
+        const errorMsg = data.error?.message || '설문 제출에 실패했습니다.';
+        alert(`제출 실패: ${errorMsg}`);
       }
     } catch (error) {
       console.error('Survey submission error:', error);
+      alert('설문 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }

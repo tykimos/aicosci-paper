@@ -60,7 +60,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id: paperId } = await params;
     const body = await request.json();
-    const { session_id, responses } = body;
+    const { session_id, responses, userProfile } = body;
 
     if (!session_id) {
       return badRequestResponse('session_id is required');
@@ -107,6 +107,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         paper_id: paperId,
         session_id,
         responses,
+        ...(userProfile && { user_profile: userProfile }),
       });
 
     if (error) {
