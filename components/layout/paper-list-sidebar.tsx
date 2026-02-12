@@ -40,7 +40,7 @@ export function PaperListSidebar({
       try {
         const params = new URLSearchParams();
         if (selectedTag) params.append('tags', selectedTag);
-        params.set('limit', '100');
+        params.set('limit', '200');
 
         const response = await fetch(`/api/v1/papers?${params}`);
         const data = await response.json();

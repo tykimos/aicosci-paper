@@ -56,7 +56,7 @@ export function internalErrorResponse(message = 'Internal server error') {
 // Helper to parse pagination params
 export function parsePaginationParams(searchParams: URLSearchParams) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+  const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
   const offset = (page - 1) * limit;
 
   return { page, limit, offset };
