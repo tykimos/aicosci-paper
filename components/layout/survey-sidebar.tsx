@@ -277,11 +277,19 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
       }
 
       const responses = [
+        // 1. 개인 설문
+        { questionId: 'q1-birthYear', value: profileForm.birthYear || '' },
+        { questionId: 'q1-organization', value: profileForm.organization || '' },
+        { questionId: 'q1-organizationOther', value: profileForm.organizationOther || '' },
+        { questionId: 'q1-1', value: profileForm.affiliationType || '' },
+        { questionId: 'q1-2', value: profileForm.researchFrequency || '' },
+        // 2. 연구보고서에 대한 설문
         { questionId: 'q2-1', value: answers['q2-1'] },
         { questionId: 'q2-2', value: JSON.stringify(matrixAnswers) },
         { questionId: 'q2-3', value: answers['q2-3'] },
         { questionId: 'q2-4', value: answers['q2-4'] },
         { questionId: 'q2-5', value: answers['q2-5'] },
+        // 3. 기타 의견
         { questionId: 'q3-1', value: answers['q3-1'] || '' },
         { questionId: 'q3-2', value: answers['q3-2'] || '' },
         { questionId: 'q3-3', value: JSON.stringify(selectedImprovements) },
@@ -294,7 +302,6 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
         body: JSON.stringify({
           session_id: sessionId,
           responses,
-          userProfile: hasProfile ? profileForm : undefined,
         }),
       });
 

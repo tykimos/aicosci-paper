@@ -60,7 +60,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id: paperId } = await params;
     const body = await request.json();
-    const { session_id, responses, userProfile } = body;
+    const { session_id, responses } = body;
 
     if (!session_id) {
       return badRequestResponse('session_id is required');
