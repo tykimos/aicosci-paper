@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { GripHorizontal } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PaperListSidebar } from '@/components/layout/paper-list-sidebar';
 import { PaperViewer } from '@/components/papers/paper-viewer';
@@ -23,6 +23,8 @@ export default function HomePage() {
   const [sessionId, setSessionId] = useState<string>('');
   const [chatHeight, setChatHeight] = useState(DEFAULT_CHAT_HEIGHT);
   const [isResizingChat, setIsResizingChat] = useState(false);
+  const [isSurveyCollapsed, setIsSurveyCollapsed] = useState(false);
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false);
   const prevPaperIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
@@ -167,12 +169,24 @@ export default function HomePage() {
 
             {/* Survey Sidebar - Only when paper is selected */}
             {!isFullscreen && selectedPaperId && (
-              <SurveySidebar
-                paperId={selectedPaperId}
-                sessionId={sessionId}
-                onPaperSelect={setSelectedPaperId}
-                onSurveyComplete={handleSurveyComplete}
-              />
+              <>
+                {/* Survey collapse toggle */}
+                <button
+                  onClick={() => setIsSurveyCollapsed(!isSurveyCollapsed)}
+                  className="shrink-0 w-6 border-l bg-muted/50 hover:bg-muted transition-colors flex items-center justify-center cursor-pointer"
+                  title={isSurveyCollapsed ? '설문 사이드바 펼치기' : '설문 사이드바 접기'}
+                >
+                  {isSurveyCollapsed ? <ChevronLeft className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                </button>
+                {!isSurveyCollapsed && (
+                  <SurveySidebar
+                    paperId={selectedPaperId}
+                    sessionId={sessionId}
+                    onPaperSelect={setSelectedPaperId}
+                    onSurveyComplete={handleSurveyComplete}
+                  />
+                )}
+              </>
             )}
           </div>
 
@@ -180,37 +194,60 @@ export default function HomePage() {
           {!isFullscreen && (
             <div
               className="border-t flex flex-col shrink-0 bg-background"
-              style={{ height: chatHeight }}
+              style={{ height: isChatCollapsed ? 36 : chatHeight }}
             >
-              {/* Resize Handle - Horizontal bar */}
-              <div
-                className={cn(
-                  'h-2 cursor-row-resize flex items-center justify-center hover:bg-primary/20 transition-colors group relative',
-                  isResizingChat && 'bg-primary/30'
-                )}
-                onMouseDown={startResizingChat}
-              >
-                {/* Elongated grab indicator */}
-                <div className={cn(
-                  'absolute w-16 h-1.5 rounded-full transition-all',
-                  isResizingChat
-                    ? 'bg-primary'
-                    : 'bg-slate-300 group-hover:bg-primary/60'
-                )} />
+              {/* Resize Handle + Collapse toggle */}
+              <div className="flex items-center shrink-0">
+                <div
+                  className={cn(
+                    'flex-1 h-2 cursor-row-resize flex items-center justify-center hover:bg-primary/20 transition-colors group relative',
+                    isResizingChat && 'bg-primary/30',
+                    isChatCollapsed && 'cursor-default'
+                  )}
+                  onMouseDown={isChatCollapsed ? undefined : startResizingChat}
+                >
+                  {!isChatCollapsed && (
+                    <div className={cn(
+                      'absolute w-16 h-1.5 rounded-full transition-all',
+                      isResizingChat
+                        ? 'bg-primary'
+                        : 'bg-slate-300 group-hover:bg-primary/60'
+                    )} />
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsChatCollapsed(!isChatCollapsed)}
+                  className="shrink-0 h-8 px-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                  title={isChatCollapsed ? '채팅창 펼치기' : '채팅창 접기'}
+                >
+                  {isChatCollapsed ? (
+                    <>
+                      <ChevronUp className="h-3.5 w-3.5" />
+                      <span>채팅</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-3.5 w-3.5" />
+                      <span>접기</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Chat Interface */}
-              <div className="flex-1 min-h-0 overflow-hidden">
-                <ChatInterface
-                  paperId={selectedPaperId}
-                  onSearchResults={handleSearchResults}
-                  onPaperSelect={setSelectedPaperId}
-                  sessionId={sessionId}
-                  onMessageSent={handleChatMessage}
-                  paperReadCount={stats.cumulative.totalPaperViews}
-                  surveyCompleteCount={stats.cumulative.totalSurveys}
-                />
-              </div>
+              {!isChatCollapsed && (
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <ChatInterface
+                    paperId={selectedPaperId}
+                    onSearchResults={handleSearchResults}
+                    onPaperSelect={setSelectedPaperId}
+                    sessionId={sessionId}
+                    onMessageSent={handleChatMessage}
+                    paperReadCount={stats.cumulative.totalPaperViews}
+                    surveyCompleteCount={stats.cumulative.totalSurveys}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

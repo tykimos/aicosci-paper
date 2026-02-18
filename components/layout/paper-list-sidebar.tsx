@@ -105,6 +105,14 @@ export function PaperListSidebar({
   // Filter papers based on viewFilter
   const filteredPapers = papers.filter((p) => {
     // Tag filter
+    if (selectedTag === '__etc__') {
+      // "기타" = papers that have no tags OR only have tags not in the main tag list
+      const paperTags = p.tags || [];
+      if (paperTags.length === 0) return true; // no tags at all
+      const hasKnownTag = paperTags.some((t) => tags.includes(t));
+      if (hasKnownTag) return false;
+      return true;
+    }
     if (selectedTag && !(p.tags || []).includes(selectedTag)) {
       return false;
     }
@@ -230,6 +238,18 @@ export function PaperListSidebar({
                 </Badge>
               );
             })}
+            <Badge
+              variant="outline"
+              className={cn(
+                'cursor-pointer shrink-0 text-xs border transition-all',
+                selectedTag === '__etc__'
+                  ? 'bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 font-medium'
+                  : 'text-foreground border-border hover:bg-accent'
+              )}
+              onClick={() => setSelectedTag(selectedTag === '__etc__' ? null : '__etc__')}
+            >
+              #기타
+            </Badge>
           </div>
         )}
       </div>
