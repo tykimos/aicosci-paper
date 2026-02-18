@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import {
   successResponse,
   badRequestResponse,
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Email and password are required');
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Find admin by email
     const { data: admin, error } = await supabase
@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Update last login
-    await (supabase as unknown as { from: (table: string) => { update: (data: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> } } })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
       .from('admins')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', admin.id);
