@@ -16,7 +16,7 @@ import {
   User,
 } from 'lucide-react';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useUserProfile, useCompletedSurveys } from '@/hooks/use-local-storage';
+import { useUserProfile } from '@/hooks/use-local-storage';
 import { cn } from '@/lib/utils';
 import type { Paper } from '@/types/database';
 
@@ -29,6 +29,8 @@ interface SurveySidebarProps {
   sessionId: string | null;
   onPaperSelect?: (paperId: string) => void;
   onSurveyComplete?: () => void;
+  isSurveyCompleted: (paperId: string) => boolean;
+  markSurveyCompleted: (paperId: string) => void;
 }
 
 interface RecommendedPaper extends Paper {
@@ -57,7 +59,7 @@ const IMPROVEMENT_OPTIONS = [
   '기타',
 ] as const;
 
-export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyComplete }: SurveySidebarProps) {
+export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyComplete, isSurveyCompleted, markSurveyCompleted }: SurveySidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -108,7 +110,6 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
 
   // Local storage hooks
   const { profile, updateProfile, hasProfile } = useUserProfile();
-  const { markSurveyCompleted, isSurveyCompleted } = useCompletedSurveys();
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({

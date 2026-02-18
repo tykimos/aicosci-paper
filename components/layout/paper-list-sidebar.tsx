@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, EyeOff, ClipboardCheck, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
+import { useViewedPapers } from '@/hooks/use-local-storage';
 import type { Paper } from '@/types/database';
 
 interface PaperListSidebarProps {
   selectedPaperId: string | null;
   onSelectPaper: (id: string) => void;
+  isSurveyCompleted: (paperId: string) => boolean;
 }
 
 const MIN_WIDTH = 280;
@@ -20,6 +21,7 @@ const DEFAULT_WIDTH = 320;
 export function PaperListSidebar({
   selectedPaperId,
   onSelectPaper,
+  isSurveyCompleted,
 }: PaperListSidebarProps) {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +34,6 @@ export function PaperListSidebar({
   const sidebarRef = useRef<HTMLElement>(null);
 
   const { isViewed, markAsViewed, viewedCount } = useViewedPapers();
-  const { isSurveyCompleted } = useCompletedSurveys();
 
   useEffect(() => {
     const fetchPapers = async () => {

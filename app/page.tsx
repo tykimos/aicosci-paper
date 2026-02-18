@@ -32,7 +32,7 @@ export default function HomePage() {
   // Statistics
   const stats = useStatistics();
   const { viewedCount } = useViewedPapers();
-  const { completedCount } = useCompletedSurveys();
+  const { completedCount, isSurveyCompleted, markSurveyCompleted } = useCompletedSurveys();
 
   // Badges
   const badgeData = useBadges({
@@ -151,6 +151,7 @@ export default function HomePage() {
           <PaperListSidebar
             selectedPaperId={selectedPaperId}
             onSelectPaper={setSelectedPaperId}
+            isSurveyCompleted={isSurveyCompleted}
           />
         )}
 
@@ -184,6 +185,8 @@ export default function HomePage() {
                     sessionId={sessionId}
                     onPaperSelect={setSelectedPaperId}
                     onSurveyComplete={handleSurveyComplete}
+                    isSurveyCompleted={isSurveyCompleted}
+                    markSurveyCompleted={markSurveyCompleted}
                   />
                 </div>
               </>
