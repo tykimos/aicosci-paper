@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
           </div>
           <CardTitle className="text-2xl">관리자 로그인</CardTitle>
           <CardDescription>
-            AI CoSci Paper Review 관리자 페이지
+            AI-CO-SCI 관리자 페이지
           </CardDescription>
         </CardHeader>
         <CardContent>

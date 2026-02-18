@@ -15,9 +15,14 @@ import {
   Loader2,
   User,
 } from 'lucide-react';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useUserProfile, useCompletedSurveys } from '@/hooks/use-local-storage';
+import { cn } from '@/lib/utils';
 import type { Paper } from '@/types/database';
+
+const MIN_WIDTH = 280;
+const MAX_WIDTH = 600;
+const DEFAULT_WIDTH = 320;
 
 interface SurveySidebarProps {
   paperId: string;
@@ -53,6 +58,42 @@ const IMPROVEMENT_OPTIONS = [
 ] as const;
 
 export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyComplete }: SurveySidebarProps) {
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  const startResizing = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback(
+    (e: MouseEvent) => {
+      if (isResizing && sidebarRef.current) {
+        const rect = sidebarRef.current.getBoundingClientRect();
+        const newWidth = rect.right - e.clientX;
+        if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+          setSidebarWidth(newWidth);
+        }
+      }
+    },
+    [isResizing]
+  );
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', resize);
+      window.addEventListener('mouseup', stopResizing);
+    }
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [isResizing, resize, stopResizing]);
+
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [matrixAnswers, setMatrixAnswers] = useState<Record<string, string>>({});
   const [checkboxAnswers, setCheckboxAnswers] = useState<Record<string, boolean>>({});
@@ -62,6 +103,8 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
   const [recommendations, setRecommendations] = useState<RecommendedPaper[]>([]);
   const [isLoadingRecs, setIsLoadingRecs] = useState(false);
   const [surveyCount, setSurveyCount] = useState(0);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Local storage hooks
   const { profile, updateProfile, hasProfile } = useUserProfile();
@@ -117,6 +160,8 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
       setCheckboxAnswers({});
       setImprovementOther('');
       setRecommendations([]);
+      setValidationErrors({});
+      setSubmitSuccess(false);
     }
   }, [paperId]);
 
@@ -192,22 +237,29 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
   const handleSubmit = async () => {
     if (!sessionId) return;
 
-    // 필수 항목 체크: 2-1
+    // Validate required fields
+    const errors: Record<string, string> = {};
+
     if (!answers['q2-1']) {
-      alert('2-1. 전반적인 평가를 선택해주세요.');
-      return;
+      errors['q2-1'] = '전반적인 평가를 선택해주세요.';
     }
 
-    // 필수 항목 체크: 2-2 매트릭스 전부
     const allMatrixAnswered = MATRIX_ITEMS.every((item) => matrixAnswers[item]);
     if (!allMatrixAnswered) {
-      alert('2-2. 모든 평가 항목에 답변해주세요.');
-      return;
+      errors['q2-2'] = '모든 평가 항목에 답변해주세요.';
     }
 
-    // 필수 항목 체크: 2-3, 2-4, 2-5
-    if (!answers['q2-3'] || !answers['q2-4'] || !answers['q2-5']) {
-      alert('2-3 ~ 2-5 문항에 모두 답변해주세요.');
+    if (!answers['q2-3']) errors['q2-3'] = '이 문항에 답변해주세요.';
+    if (!answers['q2-4']) errors['q2-4'] = '이 문항에 답변해주세요.';
+    if (!answers['q2-5']) errors['q2-5'] = '이 문항에 답변해주세요.';
+
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      // Scroll to first error
+      const firstErrorKey = Object.keys(errors)[0];
+      const el = document.getElementById(`survey-${firstErrorKey}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -251,6 +303,7 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
       if (response.ok && data.success) {
         setIsSubmitted(true);
         setSurveyCount((prev) => prev + 1);
+        setValidationErrors({});
         // 폼 초기화
         setAnswers({});
         setMatrixAnswers({});
@@ -258,14 +311,17 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
         setImprovementOther('');
         markSurveyCompleted(paperId);
         onSurveyComplete?.();
+        // 성공 토스트
+        setSubmitSuccess(true);
+        setTimeout(() => setSubmitSuccess(false), 3000);
         fetchRecommendations();
       } else {
         const errorMsg = data.error?.message || '설문 제출에 실패했습니다.';
-        alert(`제출 실패: ${errorMsg}`);
+        setValidationErrors({ submit: errorMsg });
       }
     } catch (error) {
       console.error('Survey submission error:', error);
-      alert('설문 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setValidationErrors({ submit: '설문 제출 중 오류가 발생했습니다. 다시 시도해주세요.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -273,9 +329,12 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
 
   // 라디오 질문 렌더링 헬퍼
   const renderRadioQuestion = (id: string, label: string, options: readonly string[]) => (
-    <div className="space-y-2">
-      <Label className="text-sm">{label}</Label>
-      <div className="space-y-1">
+    <div id={`survey-${id}`} className="space-y-2">
+      <Label className={cn('text-sm', validationErrors[id] && 'text-red-500')}>{label}</Label>
+      <div className={cn(
+        'space-y-1 rounded-md p-1',
+        validationErrors[id] && 'ring-1 ring-red-500 bg-red-50 dark:bg-red-950/20'
+      )}>
         {options.map((option) => (
           <label
             key={option}
@@ -286,19 +345,52 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
               name={id}
               value={option}
               checked={answers[id] === option}
-              onChange={(e) => handleAnswerChange(id, e.target.value)}
+              onChange={(e) => {
+                handleAnswerChange(id, e.target.value);
+                setValidationErrors((prev) => { const n = { ...prev }; delete n[id]; return n; });
+              }}
               className="accent-primary"
             />
             {option}
           </label>
         ))}
       </div>
+      {validationErrors[id] && (
+        <p className="text-xs text-red-500">{validationErrors[id]}</p>
+      )}
     </div>
   );
 
   return (
-    <aside className="w-80 shrink-0 border-l bg-sidebar hidden xl:block overflow-y-auto h-full">
-        <div className="p-4 space-y-4">
+    <aside
+      ref={sidebarRef}
+      className="shrink-0 border-l bg-sidebar hidden xl:flex h-full relative"
+      style={{ width: sidebarWidth, userSelect: isResizing ? 'none' : 'auto' }}
+    >
+        {/* Resize Handle - Left edge */}
+        <div
+          className={cn(
+            'absolute top-0 left-0 w-3 h-full cursor-col-resize hover:bg-primary/20 transition-colors group flex items-center justify-center z-10',
+            isResizing && 'bg-primary/30'
+          )}
+          onMouseDown={startResizing}
+        >
+          <div className={cn(
+            'absolute h-16 w-1.5 rounded-full transition-all',
+            isResizing
+              ? 'bg-primary'
+              : 'bg-slate-300 group-hover:bg-primary/60'
+          )} />
+        </div>
+
+        <div className="p-4 space-y-4 overflow-y-auto flex-1">
+          {/* 성공 토스트 */}
+          {submitSuccess && (
+            <div className="bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-md text-center animate-in fade-in slide-in-from-top-2 duration-300">
+              설문이 성공적으로 제출되었습니다!
+            </div>
+          )}
+
           {/* 1. 개인 설문 섹션 */}
           <Card>
             <CardHeader className="pb-2">
@@ -501,11 +593,14 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
                   )}
 
                   {/* 2-2 매트릭스 */}
-                  <div className="space-y-2">
-                    <Label className="text-sm">
+                  <div id="survey-q2-2" className="space-y-2">
+                    <Label className={cn('text-sm', validationErrors['q2-2'] && 'text-red-500')}>
                       2-2. 아래 항목별로 느끼신 정도를 선택해주세요.
                     </Label>
-                    <div className="space-y-3">
+                    <div className={cn(
+                      'space-y-3 rounded-md p-1',
+                      validationErrors['q2-2'] && 'ring-1 ring-red-500 bg-red-50 dark:bg-red-950/20'
+                    )}>
                       {MATRIX_ITEMS.map((item) => (
                         <div key={item} className="space-y-1">
                           <p className="text-xs font-medium text-foreground/80">{item}</p>
@@ -514,7 +609,10 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
                               <button
                                 key={scale}
                                 type="button"
-                                onClick={() => handleMatrixChange(item, scale)}
+                                onClick={() => {
+                                  handleMatrixChange(item, scale);
+                                  setValidationErrors((prev) => { const n = { ...prev }; delete n['q2-2']; return n; });
+                                }}
                                 className={`text-xs cursor-pointer border rounded px-2 py-1 transition-colors ${
                                   matrixAnswers[item] === scale
                                     ? 'bg-primary text-primary-foreground border-primary'
@@ -528,6 +626,9 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
                         </div>
                       ))}
                     </div>
+                    {validationErrors['q2-2'] && (
+                      <p className="text-xs text-red-500">{validationErrors['q2-2']}</p>
+                    )}
                   </div>
 
                   {/* 2-3 */}
@@ -631,6 +732,12 @@ export function SurveySidebar({ paperId, sessionId, onPaperSelect, onSurveyCompl
                       className="text-sm min-h-[60px]"
                     />
                   </div>
+
+                  {validationErrors['submit'] && (
+                    <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 rounded-md p-2">
+                      {validationErrors['submit']}
+                    </p>
+                  )}
 
                   <Button
                     className="w-full"

@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
       <div>
         <h1 className="text-2xl font-bold">대시보드</h1>
         <p className="text-muted-foreground">
-          AI CoSci Paper Review 현황을 확인하세요.
+          AI-CO-SCI 현황을 확인하세요.
         </p>
       </div>
 

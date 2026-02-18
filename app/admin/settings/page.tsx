@@ -29,7 +29,7 @@ export default function AdminSettingsPage() {
             <Label htmlFor="site-title">사이트 제목</Label>
             <Input
               id="site-title"
-              defaultValue="AI CoSci Paper Review"
+              defaultValue="AI-CO-SCI"
             />
           </div>
           <div className="space-y-2">

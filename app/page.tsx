@@ -9,6 +9,8 @@ import { PaperViewer } from '@/components/papers/paper-viewer';
 import { SurveySidebar } from '@/components/layout/survey-sidebar';
 import { ChatInterface } from '@/components/chat/chat-interface';
 import { useStatistics } from '@/hooks/use-statistics';
+import { useViewedPapers, useCompletedSurveys } from '@/hooks/use-local-storage';
+import { useBadges } from '@/hooks/use-badges';
 import { cn } from '@/lib/utils';
 
 const MIN_CHAT_HEIGHT = 150;
@@ -27,17 +29,50 @@ export default function HomePage() {
 
   // Statistics
   const stats = useStatistics();
+  const { viewedCount } = useViewedPapers();
+  const { completedCount } = useCompletedSurveys();
 
-  // Initialize session ID from localStorage or create new one
+  // Badges
+  const badgeData = useBadges({
+    viewedCount,
+    surveyCount: completedCount,
+    chatCount: stats.cumulative.totalChats,
+  });
+
+  // Initialize session ID from server (registers in anonymous_sessions table)
   useEffect(() => {
-    const storedSessionId = localStorage.getItem('chat-session-id');
-    if (storedSessionId) {
-      setSessionId(storedSessionId);
-    } else {
-      const newSessionId = uuidv4();
-      localStorage.setItem('chat-session-id', newSessionId);
-      setSessionId(newSessionId);
-    }
+    const initSession = async () => {
+      const storedSessionId = localStorage.getItem('chat-session-id');
+
+      try {
+        const res = await fetch('/api/v1/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: storedSessionId || undefined }),
+        });
+        const data = await res.json();
+
+        if (data.success && data.data?.session_id) {
+          const sid = data.data.session_id;
+          localStorage.setItem('chat-session-id', sid);
+          setSessionId(sid);
+          return;
+        }
+      } catch (err) {
+        console.error('Session init failed:', err);
+      }
+
+      // Fallback: use stored or generate new (won't be in DB but avoids blocking)
+      if (storedSessionId) {
+        setSessionId(storedSessionId);
+      } else {
+        const newId = uuidv4();
+        localStorage.setItem('chat-session-id', newId);
+        setSessionId(newId);
+      }
+    };
+
+    initSession();
   }, []);
 
   // Track paper views
@@ -99,6 +134,13 @@ export default function HomePage() {
         stats={{
           today: stats.today,
           cumulative: stats.cumulative,
+        }}
+        badges={{
+          earned: badgeData.earnedBadges,
+          unearned: badgeData.unearnedBadges,
+          newBadge: badgeData.newBadge,
+          totalEarned: badgeData.totalEarned,
+          totalBadges: badgeData.totalBadges,
         }}
       />
       <div className="flex flex-1 min-h-0 overflow-hidden">

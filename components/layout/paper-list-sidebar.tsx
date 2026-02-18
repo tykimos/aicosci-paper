@@ -27,8 +27,8 @@ export function PaperListSidebar({
   const [tags, setTags] = useState<string[]>([]);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
-  // Filter states: null = all, 'viewed' = read only, 'unviewed' = unread only, 'surveyed' = surveyed only
-  const [viewFilter, setViewFilter] = useState<'all' | 'viewed' | 'unviewed' | 'surveyed'>('all');
+  // Filter states
+  const [viewFilter, setViewFilter] = useState<'all' | 'viewed' | 'unviewed' | 'surveyed' | 'unsurveyed'>('all');
   const sidebarRef = useRef<HTMLElement>(null);
 
   const { isViewed, markAsViewed, viewedCount } = useViewedPapers();
@@ -39,7 +39,6 @@ export function PaperListSidebar({
       setIsLoading(true);
       try {
         const params = new URLSearchParams();
-        if (selectedTag) params.append('tags', selectedTag);
         params.set('limit', '200');
 
         const response = await fetch(`/api/v1/papers?${params}`);
@@ -60,7 +59,7 @@ export function PaperListSidebar({
     };
 
     fetchPapers();
-  }, [selectedTag]);
+  }, []);
 
   // Mark paper as viewed when selected
   useEffect(() => {
@@ -105,6 +104,12 @@ export function PaperListSidebar({
 
   // Filter papers based on viewFilter
   const filteredPapers = papers.filter((p) => {
+    // Tag filter
+    if (selectedTag && !(p.tags || []).includes(selectedTag)) {
+      return false;
+    }
+
+    // View status filter
     const viewed = isViewed(p.id);
     const surveyed = isSurveyCompleted(p.id);
 
@@ -115,6 +120,8 @@ export function PaperListSidebar({
         return !viewed;
       case 'surveyed':
         return surveyed;
+      case 'unsurveyed':
+        return !surveyed;
       default:
         return true;
     }
@@ -123,6 +130,7 @@ export function PaperListSidebar({
   // Count for badges
   const unviewedCount = papers.filter((p) => !isViewed(p.id)).length;
   const surveyedCount = papers.filter((p) => isSurveyCompleted(p.id)).length;
+  const unsurveyedCount = papers.length - surveyedCount;
 
   return (
     <aside
@@ -152,7 +160,7 @@ export function PaperListSidebar({
             onClick={() => setViewFilter('unviewed')}
           >
             <EyeOff className="h-3 w-3" />
-            안읽음 ({unviewedCount})
+            읽기전 ({unviewedCount})
           </Badge>
           <Badge
             variant={viewFilter === 'viewed' ? 'secondary' : 'outline'}
@@ -161,6 +169,14 @@ export function PaperListSidebar({
           >
             <Eye className="h-3 w-3" />
             읽음 ({viewedCount})
+          </Badge>
+          <Badge
+            variant={viewFilter === 'unsurveyed' ? 'secondary' : 'outline'}
+            className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1"
+            onClick={() => setViewFilter('unsurveyed')}
+          >
+            <ClipboardCheck className="h-3 w-3" />
+            설문전 ({unsurveyedCount})
           </Badge>
           <Badge
             variant={viewFilter === 'surveyed' ? 'secondary' : 'outline'}
@@ -175,16 +191,45 @@ export function PaperListSidebar({
         {/* 태그 필터 */}
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-2 border-t">
-            {tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant={selectedTag === tag ? 'secondary' : 'outline'}
-                className="cursor-pointer hover:bg-accent shrink-0 max-w-[120px] truncate text-xs"
-                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-              >
-                #{tag}
-              </Badge>
-            ))}
+            <Badge
+              variant={selectedTag === null ? 'secondary' : 'outline'}
+              className="cursor-pointer hover:bg-secondary/80 shrink-0 text-xs"
+              onClick={() => setSelectedTag(null)}
+            >
+              전체
+            </Badge>
+            {tags.map((tag, idx) => {
+              const pastelColors = [
+                { bg: 'bg-rose-100 dark:bg-rose-900/40', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-300 dark:border-rose-700', hover: 'hover:bg-rose-50 dark:hover:bg-rose-900/20' },
+                { bg: 'bg-sky-100 dark:bg-sky-900/40', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-300 dark:border-sky-700', hover: 'hover:bg-sky-50 dark:hover:bg-sky-900/20' },
+                { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-700', hover: 'hover:bg-amber-50 dark:hover:bg-amber-900/20' },
+                { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-700', hover: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20' },
+                { bg: 'bg-violet-100 dark:bg-violet-900/40', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-300 dark:border-violet-700', hover: 'hover:bg-violet-50 dark:hover:bg-violet-900/20' },
+                { bg: 'bg-pink-100 dark:bg-pink-900/40', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-300 dark:border-pink-700', hover: 'hover:bg-pink-50 dark:hover:bg-pink-900/20' },
+                { bg: 'bg-teal-100 dark:bg-teal-900/40', text: 'text-teal-700 dark:text-teal-300', border: 'border-teal-300 dark:border-teal-700', hover: 'hover:bg-teal-50 dark:hover:bg-teal-900/20' },
+                { bg: 'bg-orange-100 dark:bg-orange-900/40', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-300 dark:border-orange-700', hover: 'hover:bg-orange-50 dark:hover:bg-orange-900/20' },
+                { bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700', hover: 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20' },
+                { bg: 'bg-lime-100 dark:bg-lime-900/40', text: 'text-lime-700 dark:text-lime-300', border: 'border-lime-300 dark:border-lime-700', hover: 'hover:bg-lime-50 dark:hover:bg-lime-900/20' },
+              ];
+              const color = pastelColors[idx % pastelColors.length];
+              const isActive = selectedTag === tag;
+
+              return (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className={cn(
+                    'cursor-pointer shrink-0 max-w-[120px] truncate text-xs border transition-all',
+                    isActive
+                      ? `${color.bg} ${color.text} ${color.border} font-medium`
+                      : 'text-foreground border-border hover:bg-accent'
+                  )}
+                  onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                >
+                  #{tag}
+                </Badge>
+              );
+            })}
           </div>
         )}
       </div>
@@ -197,10 +242,11 @@ export function PaperListSidebar({
             ))
           ) : filteredPapers.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              {viewFilter === 'viewed' && '읽은 논문이 없습니다.'}
-              {viewFilter === 'unviewed' && '모든 논문을 읽었습니다!'}
-              {viewFilter === 'surveyed' && '설문 완료한 논문이 없습니다.'}
-              {viewFilter === 'all' && '논문이 없습니다.'}
+              {viewFilter === 'viewed' && '읽은 연구보고서가 없습니다.'}
+              {viewFilter === 'unviewed' && '모든 연구보고서를 읽었습니다!'}
+              {viewFilter === 'surveyed' && '설문 완료한 연구보고서가 없습니다.'}
+              {viewFilter === 'unsurveyed' && '모든 연구보고서의 설문을 완료했습니다!'}
+              {viewFilter === 'all' && '연구보고서가 없습니다.'}
             </p>
           ) : (
             filteredPapers.map((paper) => {
@@ -229,36 +275,36 @@ export function PaperListSidebar({
                     {paper.title}
                   </h3>
 
-                  {/* Hashtags */}
-                  {(paper.tags.length > 0 || viewed || surveyed) && (
-                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                      {paper.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className={cn(
-                            'text-[11px] cursor-pointer transition-colors',
-                            selectedTag === tag
-                              ? 'text-primary font-medium'
-                              : 'text-muted-foreground hover:text-foreground'
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTag(tag === selectedTag ? null : tag);
-                          }}
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                      {/* Status indicators */}
-                      {(viewed || surveyed) && (
-                        <span className="text-[10px] text-muted-foreground/60 ml-auto">
-                          {viewed && '읽음'}
-                          {viewed && surveyed && ' · '}
-                          {surveyed && '설문완료'}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {/* Hashtags & Status */}
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {paper.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className={cn(
+                          'text-[11px] cursor-pointer transition-colors',
+                          selectedTag === tag
+                            ? 'text-primary font-medium'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTag(tag === selectedTag ? null : tag);
+                        }}
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                    {/* Status indicators */}
+                    <span className="text-[10px] ml-auto flex items-center gap-1">
+                      <span className={viewed ? 'text-blue-500' : 'text-muted-foreground/50'}>
+                        {viewed ? '읽음' : '읽기전'}
+                      </span>
+                      <span className="text-muted-foreground/30">·</span>
+                      <span className={surveyed ? 'text-green-500' : 'text-muted-foreground/50'}>
+                        {surveyed ? '설문완료' : '설문전'}
+                      </span>
+                    </span>
+                  </div>
                 </div>
               );
             })

@@ -97,11 +97,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Create survey
-    const { error } = await (supabase as unknown as {
-      from: (table: string) => {
-        insert: (data: Record<string, unknown>) => Promise<{ error: unknown }>
-      }
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
       .from('surveys')
       .insert({
         paper_id: paperId,
@@ -111,8 +108,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
     if (error) {
-      console.error('Error creating survey:', error);
-      return internalErrorResponse('Failed to submit survey');
+      console.error('Error creating survey:', JSON.stringify(error));
+      const dbMsg = typeof error === 'object' && error !== null && 'message' in error
+        ? (error as { message: string }).message
+        : String(error);
+      return errorResponse('INTERNAL_ERROR', `설문 저장 실패: ${dbMsg}`, 500);
     }
 
     // Get updated survey count

@@ -95,23 +95,34 @@ async function searchPapers(
 }
 
 /**
- * Get paper details by ID
+ * Get paper details by ID, including actual chunks from vector DB
  */
 async function getPaperDetails(paperId: string) {
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
+    // Fetch paper metadata
+    const { data: paperData, error: paperError } = await supabase
       .from('papers')
       .select('*')
       .eq('id', paperId)
       .single();
 
-    if (error || !data) {
+    if (paperError || !paperData) {
       return null;
     }
 
-    const paper = data as Paper;
+    const paper = paperData as Paper;
+
+    // Fetch actual chunks from vector DB
+    const { data: chunksData } = await supabase
+      .from('paper_chunks')
+      .select('content, chunk_index')
+      .eq('paper_id', paperId)
+      .order('chunk_index', { ascending: true })
+      .limit(20);
+
+    const chunks = (chunksData || []).map((c: { content: string }) => c.content);
 
     return {
       paper_id: paper.id,
@@ -119,8 +130,7 @@ async function getPaperDetails(paperId: string) {
       authors: paper.authors || [],
       abstract: paper.abstract,
       tags: paper.tags || [],
-      // chunks would be fetched from a separate table in production
-      chunks: paper.abstract ? [paper.abstract] : [],
+      chunks: chunks.length > 0 ? chunks : (paper.abstract ? [paper.abstract] : []),
     };
   } catch (error) {
     console.error('[Chat] Get paper failed:', error);

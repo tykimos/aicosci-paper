@@ -297,7 +297,7 @@ export function ChatMessage({ message, onPaperSelect }: ChatMessageProps) {
         {message.papers && message.papers.length > 0 && (
           <div className="space-y-2 w-full animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
             <div className="text-xs font-medium text-muted-foreground px-1 tracking-wide uppercase">
-              추천 논문
+              추천 연구보고서
             </div>
             <div className="grid gap-2">
               {message.papers.slice(0, 3).map((paper, idx) => (

@@ -191,6 +191,16 @@ function ruleBasedRouting(
   if (message) {
     const intent = detectIntent(message);
 
+    if (intent === 'explain') {
+      const skill = registry.skills.find((s) => s.skill_id === 'paper_explain');
+      return {
+        skill_id: 'paper_explain',
+        requires: skill?.requires || ['paper_chunks', 'paper_metadata'],
+        query: message,
+        reason: '설명/요약 의도 감지로 논문 설명 스킬 선택',
+      };
+    }
+
     if (intent === 'search') {
       const skill = registry.skills.find((s) => s.skill_id === 'paper_search');
       return {

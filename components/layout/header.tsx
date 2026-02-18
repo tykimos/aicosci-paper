@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Settings, FileText, ClipboardList, MessageSquare, Users } from 'lucide-react';
+import { Settings, FileText, ClipboardList, MessageSquare, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { BadgeDefinition } from '@/hooks/use-badges';
 
 interface HeaderProps {
   stats?: {
@@ -25,9 +26,16 @@ interface HeaderProps {
       totalChats: number;
     };
   };
+  badges?: {
+    earned: BadgeDefinition[];
+    unearned: BadgeDefinition[];
+    newBadge: BadgeDefinition | null;
+    totalEarned: number;
+    totalBadges: number;
+  };
 }
 
-export function Header({ stats }: HeaderProps) {
+export function Header({ stats, badges }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-4 gap-4">
@@ -37,7 +45,7 @@ export function Header({ stats }: HeaderProps) {
             <span className="text-white text-xs font-bold">AI</span>
           </div>
           <span className="font-bold text-xl hidden sm:inline">
-            AI CoSci Paper Review
+            AI-CO-SCI
           </span>
         </Link>
 
@@ -61,7 +69,7 @@ export function Header({ stats }: HeaderProps) {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>오늘 본 논문</p>
+                    <p>오늘 본 연구보고서</p>
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -108,7 +116,7 @@ export function Header({ stats }: HeaderProps) {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>누적 논문 조회</p>
+                    <p>누적 연구보고서 조회</p>
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -127,19 +135,6 @@ export function Header({ stats }: HeaderProps) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5 text-orange-500/70" />
-                      <span className="text-xs text-muted-foreground">
-                        {stats.cumulative.totalVisits}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>누적 방문</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1">
                       <MessageSquare className="h-3.5 w-3.5 text-purple-500/70" />
                       <span className="text-xs text-muted-foreground">
                         {stats.cumulative.totalChats}
@@ -151,6 +146,57 @@ export function Header({ stats }: HeaderProps) {
                   </TooltipContent>
                 </Tooltip>
               </div>
+
+              {/* Badges */}
+              {badges && (
+                <>
+                  <div className="h-6 w-px bg-border hidden md:block" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 cursor-default">
+                        <Award className="h-3.5 w-3.5 text-amber-500" />
+                        <div className="flex items-center gap-0.5">
+                          {badges.earned.slice(-4).map((b) => (
+                            <span key={b.id} className="text-sm" title={b.name}>
+                              {b.icon}
+                            </span>
+                          ))}
+                          {badges.totalEarned === 0 && (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                          {badges.totalEarned}/{badges.totalBadges}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <div className="space-y-1.5">
+                        <p className="font-medium text-sm">배지 ({badges.totalEarned}/{badges.totalBadges})</p>
+                        {badges.earned.map((b) => (
+                          <div key={b.id} className="flex items-center gap-2 text-sm">
+                            <span>{b.icon}</span>
+                            <span className="font-medium">{b.name}</span>
+                            <span className="text-muted-foreground text-xs">{b.description}</span>
+                          </div>
+                        ))}
+                        {badges.unearned.length > 0 && (
+                          <>
+                            <div className="border-t my-1" />
+                            {badges.unearned.map((b) => (
+                              <div key={b.id} className="flex items-center gap-2 text-sm opacity-40">
+                                <span>🔒</span>
+                                <span>{b.name}</span>
+                                <span className="text-muted-foreground text-xs">{b.description}</span>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
             </div>
           </TooltipProvider>
         )}
@@ -166,6 +212,16 @@ export function Header({ stats }: HeaderProps) {
           </Link>
         </Button>
       </div>
+
+      {/* New Badge Notification */}
+      {badges?.newBadge && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium">
+            <span className="text-lg">{badges.newBadge.icon}</span>
+            <span>새 배지 획득: {badges.newBadge.name}!</span>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

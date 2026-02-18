@@ -1,0 +1,430 @@
+,,,
+no.,연구보고서 명,연구 주제,"연구 분야
+- 지정: 바이오, 재료·화학, 지구과학, 반도체·디스플레이, 이차전지, 에너지, 수학"
+1,Administration without UX: An AI-Based Computational Architecture for Automated Administrative Processing,An AI-Based Computational Architecture for Automated Administrative Processing,AI-Based Computing
+2,Tool-less Human–AI Co-Execution Framework for Scientific Research,도구 없이 수행되는 인간–AI 공동집행 프레임워크를 통한 과학기술 연구 수행 방식에 관한 연구,기타 (AI 활용 연구)
+3,Human–AI Co-Scientist Framework for Quantitative Integration of Multi-Assay Bioactivity Data,AI 공동연구 기반 정량 생물활성 분석 연구,바이오·정량 분석·AI 공동연구
+4,Uncertainty Quantification for Temporal Generalization in Deep Learning-Based Turbulent Flow Prediction: Identifying Reliability Horizons Through Epistemic-Aleatoric Decomposition,딥러닝 기반 난류 유동 예측의 시간적 일반화를 위한 불확실성 정량화: Epistemic-Aleatoric 분해를 통한 임계 시간 수평선 식별,수학
+5,"AI-Assisted Design of GaN-Based Micro-LED and
+GaN HEMT Driver for Thermal-Efficient AR Helmet
+Displays",전장용 AR 스마트 헬멧을 위한 AI 기반의 Micro-LED 열관리 및 GaN 구동 회로 최적화 연구,반도체·디스플레이
+6,"AI-Driven Analysis of Compound Extreme Climate Events
+and Socioeconomic Vulnerability in South Korea",복합 극한기후 현상 발생에 따른 사회·경제적 취약성 연구,지구과학
+7,AI-Driven Framework for Assessing Socioeconomic Vulnerability to Compound Extreme Climate Events: Integrating Deep Learning and Copula-Based Multi-Hazard Modeling,AI-Driven Framework for Assessing Socioeconomic Vulnerability to Compound Extreme Climate Events: Integrating Deep Learning and Copula-Based Multi-Hazard Modeling,지구과학
+8,"Temporal Patterns and Resolution of Toxicities
+following Hypofractionated Salvage Radiotherapy for
+Biochemical Recurrence of Prostate Cancer After
+Prostatectomy",전립선절제술 후 생화학적 재발 환자에서 저분할 구제 방사선치료 후 독성의 시간적 발생 패턴 및 소실 양상 분석,바이오
+9,"Breaking the senescence-fibrosis loop:
+FAP-responsive inhaled molecular glues targeting
+IL-11/ERK PTM axis",섬유화·노화 네트워크 관련 폐 섬유증 치료 타겟 발굴과 약물 후보 제안,바이오
+10,"A Multi-Agent RAG Architecture for
+Citation-Grounded Scientific Literature Synthesis","A Multi-Agent RAG Architecture for
+Citation-Grounded Scientific Literature Synthesis",컴퓨터과학 / 인공지능
+11,AI-Human Collaboration for Optimal Point Dispersion in Unit Square (n=16),AI 협업 기반 단위 정사각형 내 점 분산 최적화 (n=16),수학
+12,Reducing Inter-Class Confusion in Military Aircraft Detection via Selective Oversampling,군용기 탐지에서 생성형 데이터 증강의 효용성 분석 : 객체 크기 및 기종간 유사성을 중심으로,공학 (인공지능 / 국방)
+13,In Silico Repositioning of Semaglutide as a Multi-Target Therapeutic Agent for Alzheimer’s Disease: An Integrated Network Pharmacology and Molecular Docking Approach,세마글루타이드의 알츠하이머 치료제 재창출을 위한 인실리코 네트워크 약리학 연구,바이오
+14,Computational Drug Repurposing Pipeline for T-Cell Exhaustion Suppression: A Multi-Evidence Integration Approach,T 세포 탈진 억제 약물 재활용(drug repositioning) 후보 예측,바이오
+15,AI-Driven Optimization Framework for Korean Virtual Power Plant Implementation: Hybrid Deep Reinforcement Learning with Multi-Market Coordination,AI-Driven Optimization Framework for Korean Virtual Power Plant Implementation: Hybrid Deep Reinforcement Learning with Multi-Market Coordination,에너지
+16,"Multi-Task Deep Learning for Performance Prediction of Amorphous Oxide Semiconductor TFTs: Integration of DFT, TCAD Simulation, and Experimental Data",AI 모델을 활용하여 AMOLED 구동용 고성능/고신뢰성 산화물 TFT 개발을 위한 조성-공정 변수 기반 후보 탐색,반도체·디스플레이
+17,"AI Co-Scientist-Guided Generative Augmentation for
+Rare Disease Research: Overcoming VAE Mode
+Collapse via Temperature Scaling","AI Co-Scientist-Guided Generative Augmentation for Rare
+Disease Research",바이오
+18,"An ε–δ Discriminant for Projection-Induced
+Irregularity in Recurrent Navier–Stokes Observations",Navier–Stokes / Turbulence (recurrent map & projection validity),수학
+19,"AI-Driven Drug Repurposing for Alzheimer’s Disease:
+Multi-Target Evaluation of FDA-Approved Drugs
+Targeting Neuroinflammation and Metabolism",AI-Driven Multi-Target Drug Repurposing for Alzheimer's Disease,바이오
+20,"EGO-Evolution: Constraint-Aware Evolutionary
+AutoML with LLM Hints and Verifiable Provenance
+for Tabular Binary Classification","Constraint-aware Evolutionary AutoML with Verifiable
+Provenance (AUC 최대화 + 제약 만족)","AutoML / Tabular ML /
+Multi-objective Optimization /
+Reproducibility"
+21,"Research Drift Guardian (RDG): A Rule-
+Based Governance Framework for
+Evaluating Methodological Rigor in AIGenerated
+Scientific Claims","AI 생성 과학기술 주장에 대한 연구 드리프트 탐지 및 통제 프레임워크
+(Research Drift Guardian, RDG)","AI 활용 과학기술 연구
+(AI 기반 연구 거버넌스 / 연구 무결성
+검증)"
+22,"Reasoning Guard : A Bayesian-AdaBoost Framework for
+Robust Misfire Prevention in Autonomous Drone Systems",복잡 공학 환경에서의 오류 재발 방지를 위한 베이지안-에이다 부스트 기반 자기 교정 프레임워크,국방
+23,Overcoming Resolution Limitations of 60 MHz Benchtop NMR Using Artificial Intelligence,인공지능 기반 데이터 해석을 통한 60 MHz 벤치탑 NMR의 분해능 한계 극복에 관한 연구,식품·화학
+24,Integrating Sequence- and Structure-aware Models to Assess Processing-Dependent Allergenicity of Wheat Gliadin,AI 모델링 기반 압출 성형 및 효소 가수분해 복합 공정을 통한 밀 글리아딘의 구조적 변성과 에피토프 파괴 및 알레르기 저감 최적화 연구,바이오
+25,"Multi-layer Serpentine Lattice Interlayer for
+Mitigating Battery Cell Swelling in High-Nickel
+Lithium-Ion Battery Modules",Multi-layer Serpentine Lattice Interlayer for Mitigating Battery Cell Swelling in High-Nickel Lithium-Ion Battery Modules,이차전지
+26,"Beyond Vera Rubin: Designing a Thermally-Robust AI
+Ultra-Chip via 3D Inter-tier Cooling and PIM
+Integration","3D 층간 냉각(Inter-tier Cooling)과 PIM 통합을 통한 열 내구성
+기반 차세대 AI 울트라 칩(Ultra-Chip) 설계",반도체·디스플레이
+27,Bridging the Sex-Specific Gap in ALS: AI-identified DHEA as a Dual Sigma-1-Receptor Modulator,AI 기반 in silico 분석을 통한 남성 ALS 환자 특이적 치료제(DHEA) 발굴 및 이중 조절 (Dual-Modulation) 기전 규명,바이오
+28,Solis Enzyme Engineering Pipeline,AI와 생물정보학 기반 안정성 효소 디자인 파이프라인 구축,바이오
+29,Performance Prediction Model for Natural Wind-Based Powerless Heat Exchanger with Porous Chimney Design,무동력 자연 냉열 회수를 위한 자연풍 환경 열교환기 성능 예측 모델 개발,에너지
+30,Generative Inverse Design of Solid-State Fluoride-Ion Electrolytes in Data-Sparse Chemical Space,AI 기반 초대규모 조성-구조-계면 통합 데이터베이스를 이용한 차세대 고체전해질 설계,이차전지
+31,"S-ACAD: Safe and Rapid Clinical Algorithm
+Development through Multi-AI Collaboration and
+Human Governance","S-ACAD*: 다중 AI 협업과 인간 거버넌스를 통한 임상 알고리즘의 안전하고 신속한 개발 
+*S-ACAD: Semi-Automatic Clinical Algorithm Development",의료
+32,Single-cell RNA-seq-based   characterization of IL-11-positive fibroblasts and their pro-fibrotic signaling networks in pulmonary fibrosis,섬유화·노화 네트워크 관련 폐 섬유증 치료 타겟 발굴과 약물 후보 제안,바이오
+33,A Korean Benchmark for Safe Exercise Prescription: From Exam Knowledge to Clinical Action in Metabolic Syndrome and Sarcopenia,대사증후군 및 근감소증 환자 운동 처방 LLM 벤치마크 평가,의료
+34,"Turning Literature into Knowledge: AI-Driven
+Discovery of Solid-State Electrolytes","문헌 근거 기반 데이터 구축과 지식그래프 조건화 후보 설계, MLIP-MD 검증을 결합한 고체전해질 신소재 발굴 체계 구축",이차전지
+35,AI-Driven Predictive Ontology for Cold Atmospheric Plasma Therapy in Immune Diseases: A Multi-Stage Framework from RONS Generation to Treatment Mechanisms,AI-Driven Predictive Ontology for Cold Atmospheric Plasma Therapy in Immune Diseases: A Multi-Stage Framework from RONS Generation to Treatment Mechanisms,바이오/플라즈마의학/온톨로지
+36,A Multi-Domain Ontology Framework for Integrated Indoor Air Quality Health Risk Assessment,A Multi-Domain Ontology Framework for Integrated Indoor Air Quality Health Risk Assessment,환경공학 / 건강위험평가 / IoT
+37,"Saturation-Like Growth Trends of SnO2 Films
+for Oxide Semiconductor Applications in PEALD",산화물 반도체 적용을 위한 플라즈마 원자층증착(PEALD) 공정에서 SnO₂ 박막의 자기제한(Self-limiting) 성장 특성 검증,반도체·디스플레이
+38,"Development of a Dynamic Energy Budget Model for
+Pyropia dentata Cultivation in Korean CoastalWaters","잇바디돌김 DEB 모델 개발(Development of a Dynamic Energy Budget Model for 
+Pyropia dentata Cultivation in Korean Coastal Waters)",수치모델
+39,"MNK-AI-7: AI-Driven De Novo Design of a Novel Dual
+NK1/NK3 Receptor Antagonist for Comprehensive Menopausal
+Symptom Management",AI 기반 이중 NK1/NK3 수용체 길항제 신약 설계: 폐경기 종합 증상 치료를 위한 MNK-AI-7 개발,바이오
+40,"AI-Driven Proxy-Based Screening of Degradation
+Risk in Blue OLED Emitters",AI 기반 프록시 기반 블루 OLED 발광체의 열화 위험 스크리닝,재료·화학
+41,"AI-Driven Precision
+Healthcare Via Space 
+Microbiome-Bone Axis:
+A personalized Bio-Defense
+Protocol For Astronauts","AI-Driven Precision Healthcare Via Space Microbiome-BoneAxis:
+A personalized Bio-Defense Protocol For Astronauts",우주과학
+42,Adaptive Peak Shaving via Greedy Cap-Ratio: A Feasibility-Guarded ESS Scheduling Strategy for Residential Demand-Charge Reduction,역송전 금지 제약 하에서 수요요금 절감을 위한 피크 상한 강제형 그리디 ESS 스케줄링,에너지
+43,Deep-Resilience: Cognitive Reserve – based Dementia Prediction System,인지 예비력 기반 알츠하이머 치매 진단 AI 모델 개발,의료 데이터 분석
+44,An AI-Driven Multi-Vector Energy Framework for Korea's West Coast Corridor: Optimizing Grid Topologies via Multi-Agent Collaboration with PyPSA-Korea and Spatial-Text Fusion ,전력망 최적화를 위한 서해안 에너지 하이웨이 다중 AI 협업 프레임워크 (An AI-Driven Multi-Vector Energy Framework for Korea's West Coast Corridor) ,에너지
+45,AI-driven Virtual Lithography Experiments for Manufacturing Stability Optimization,AI 기반 가상 리소그래피 공정 실험을 통한 공정 변수–패턴 불량–수율 상관관계 분석 및 양산 안정성 최적화 연구,반도체·디스플레이
+46,"Foundation Model–Based Zero-Shot Electricity
+Demand Forecasting Under Extreme Operating
+Conditions","Foundation Model–Based Zero-Shot Electricity Demand
+Forecasting Under Extreme Operating Conditions",에너지
+47,A Synthetic Benchmark of Strain-Hardening-Inspired Features for Discriminating Sheet Positions (Edge/Middle/Center),변형경화율 기반 특징량으로 판재 위치(Edge/Middle/Center) 시그니처 구분: 합성 벤치마크 연구,재료·화학
+48,"Practical Framework for Mineral Prospectivity
+Mapping: Integrating Uncertainty Quantification with
+Spatial Block Cross-Validation",Practical Framework for Mineral Prospectivity Mapping: Integrating Uncertainty Quantification with Spatial Block Cross-Validation,지구과학
+49,"An AI-Driven CFD Digital Twin for Intelligent Design,       Real-Time Prediction and Autonomous Optimization                of Water Intake Systems in WTP","AI 기반 CFD 디지털 트윈을 활용한 취수시설의 
+실시간 예측 및 자율 최적화 기술 개발","AI 응용 
+(기후변화 및 물관리 분야)"
+50,"A Regulatory Feasibility Evaluation Framework 
+to Support Practical Medical Device Research Projects
+연구과제 기반 실질적 의료기기 지원을 위한 
+규제 실현가능성 평가체계 제안",의료기기 사업화 가능성 발굴과 임상적 유익성-위험성 예측,바이오
+51,AI-Driven Discovery of Novel Antimicrobial Peptides from Skin Microbiome Big Data: An In Silico Screening Pipeline using Claude 3.5 Sonnet,AI-Driven Discovery of Novel Antimicrobial Peptides from Skin Microbiome Big Data: An In Silico Screening Pipeline using Claude 3.5 Sonnet,바이오
+52,"AI-Assisted Test Prioritization:
+A Simulation Study of Diagnostic Uncertainty Reduction Across Point-of-Care and Centralized Settings",현장진단 및 중앙검사 환경에서의 진단 불확실성 감소를 위한 AI 보조 검사 우선순위화,바이오
+53,"PMI-RAG: A Universal Ontology-based RAG Agent
+for Privacy-Preserving CAM Automation",온톨로지 기반 PMI 모델 정보를 활용한 범용 CAM 소프트웨어 RAG 에이전트 개발,공학 (제조/CAM)
+54,"A Neural Codec-Aware Training Strategy for Robust
+Audio Deepfake Detection","A Neural Codec-Aware Training Strategy for Robust Audio
+Deepfake Detection",AI 보안
+55,"Why One Question Can Yield Many Answers:
+Structural Pathways to Hallucination in
+Transformer-Based Generative AI
+and a Literature-as-Data Synthesis of
+Expert–Non-Expert Responses",AI hallucination,"AI, NLP, HCI"
+56,Hydrolysis-Resistant Self-Luminescent Polymer Composites for Enhanced Road Safety in Wet Conditions,Hydrolysis-Resistant Self-Luminescent Polymer Composites for Enhanced Road Safety in Wet Conditions,재료·화학
+57,"CMI-AI: A Physically Grounded Framework
+for Autonomous Chemical Mechanism Inference
+via Neural-Symbolic Tree Search",CMI-AI: A Physically Grounded Framework for Autonomous Chemical Mechanism Inference via Neural-Symbolic Tree Search,재료·화학
+58,"Computational Drug Repurposing for Lenvatinib-Resistant
+Differentiated Thyroid Cancer: An AI-Driven Approach",Computational Drug Repurposing for Lenvatinib-Resistant Differentiated Thyroid Cancer: An AI-Driven Approach,바이오
+59,"AI-Assisted Discovery of Li–Ta–Cl Solid Electrolytes:
+Multi-Objective Composition Optimization",AI 기반 초대규모 조성-구조-계면 통합 데이터베이스를 이용한 차세대 고체전해질 설계,이차전지
+60,"Physics-Informed Feature Disentanglement for
+Autonomous Acceleration of Lithium-Ion Battery
+Design and Analysis",Physics-Informed Feature Disentanglement for Autonomous Acceleration of Lithium-Ion Battery Design and Analysis,이차전지
+61,Mapping the Sadistic Mind: Navigating and Re-shaping Antisocial Values in Virtual Space,Successor Representation 기반의 사회적 인지 지도 재구성: 반사회적 노드 교정을 위한 AI 강화학습 모델링,바이오
+62,AI-Driven Pan-Cancer Drug Prioritization for ecDNA-amplified Oncogenes through CIViC Evidence Integration,ecDNA 유래 Oncogene 증폭 네트워크 분석을 통한 암종별 정밀 타겟 발굴 및 CIViC 기반 맞춤형 약물 후보 제안,바이오
+63,"Exploring mesoscale phenomena in Venusian cloud
+tops using the scattering transform",Exploring mesoscale phenomena in Venusian cloud tops using the scattering transform,지구과학
+64,"Physiscore: An Autonomous Expert-Agentic
+Framework for Multimodal Material Characterization
+in Optoelectronic Research","페로브스카이트, 유기 태양전지를 위한 AI 주도 멀티모달 분석: 분석 자동화 및 효율 예측","기초과학, 물리학"
+65,AI-Assisted Analysis of Secondary Battery Technology,이차전지와 ai활용,이차전지
+66,"Reliable COPD Diagnosis in Small-
+Scale Imbalanced Audio Data:
+Quantitative Verification via Spectral
+ROI Analysis with ResNet-18",소규모 불균형 오디오 데이터에서의 신뢰성 있는 COPD 진단: ResNet-18과 스펙트럼 ROI 분석을 통한 정량적 검증,바이오
+67,"An AI-Guided Framework for
+Mobility–Stability-Aware Recipe Generation in Oxide
+Semiconductor TFTs",An AI-Guided Framework for Mobility–Stability-Aware Recipe Generation in Oxide Semiconductor TFTs,반도체·디스플레이
+68,A research agent for aging study identifies previously unknown aging mechanisms,노화,바이오
+69,"Transcriptome-Driven Drug Repositioning to Reverse T Cell
+Exhaustion Using Large-Scale Perturbation Signatures","T 세포 탈진 억제 약물 재활용(drug repositioning) 후보
+예측",바이오
+70,"Model-Driven Hybrid AI Framework for End-to-End
+Autonomous Decision-Making in Drug Development","Model-Driven Hybrid AI Framework for End-to-End
+Autonomous Decision-Making in Drug Development",바이오
+71,"Simultaneous Wafer Defect Segmentation and Classification Model Based on Lightweight
+Knowledge Distillation:
+
+LightWaferSegClassNet",반도체 웨이퍼 결함 탐지 경량 AI모델의 제작,반도체·디스플레이
+72,Accelerated Design of Robust a-IGZO Thin-Film Transistors via Extreme Gradient Boosting (XGBoost) and Statistical Data Augmentation,AI 모델을 활용하여 AMOLED 구동용 고성능/고신뢰성 산화물 TFT 개발을 위한 조성공정 변수 기반 후보 탐색,반도체·디스플레이
+73,"HQ-VQVAE for Unsupervised Battery Precursor
+Discovery",Unsupervised Discovery of Early Degradation Precursors in Li-ion Batteries using Hybrid Quantum-Classical VQ-VAE (하이브리드 양자-고전 VQ-VAE를 이용한 리튬이온 배터리 조기 열화 전조의 비지도 탐색),이차전지
+74,"Reduced-Order Modeling of Turbulent Flows:
+Comparative Performance Analysis of Projection-Based
+and Direct Learning Methods",(A) AI 기반 고차원 난류 유동장 해석 - 난류 ROM 비교 연구,수학
+75,"Autonomous AI Agent-based Virtual Lab for
+Predicting Novel Ligand-Receptor Interactions
+Between Brain-derived Plasma Proteins and Immune
+Receptors",Autonomous AI Agent-based Virtual Lab for Predicting Novel Ligand-Receptor Interactions Between Brain-derived Plasma Proteins and Immune Receptors.,바이오
+76,"Transcriptome-Based Drug Repositioning for T Cell
+Exhaustion: A Comparative Study of Manual
+Screening and AI-Assisted Candidate Prediction","Transcriptome-Based Drug Repositioning for T Cell
+Exhaustion: A Comparative Study of Manual
+Screening and AI-Assisted Candidate Prediction",바이오
+77,"An Integrated Clinical–Imaging ReportingWorkflow
+for the Assessment of Cognitive Impairment",인지기능 장애 평가를 위한 통합 임상-영상 보고 워크플로우,의료 AI
+78,"Design and Validation of FastSymNet: High-Speed Neural
+Networks via Algebraic Invariant-Based Dimension Reduction",갈루아 이론의 불변량 추출을 이용한 대칭 행렬 처리 신경망의 설계 및 검증,수학
+79,"Spatiotemporal Risk Assessment and
+Vulnerability Analysis of Compound
+Heatwave and Drought Extremes on
+the Korean Peninsula",폭염과 가뭄의 복합 극한기후 발생 특성을 고려한 지역별 위험도 분석,지구과학
+80,"Memory-Efficient Pipeline for
+Large-Scale Linear Code Classification",Memory-Efficient Pipeline for Large-Scale Linear Code Classification,수학
+81,"Delivery Is a Property of Sequence:
+An AI Co-Scientist Investigation into the Learnability Boundary
+and Non-Learnable Collapse of Biological Delivery","Delivery Is a Property of Sequence:
+An AI Co-Scientist Investigation into Learnability and Non-learnable
+Collapse of Biological Delivery
+전달은 서열의 속성이다:
+생물학적 전달의 학습 가능성과 비학습적 붕괴에 대한 AI공동연구자 기반 탐구",바이오
+82,"Mechanism-Aware Drug Repositioning for T Cell
+Exhaustion via Single-Cell Transcriptomic Signature
+Reversal and LLM-Assisted Candidate Curation",T 세포 탈진 억제 약물 재활용(drug repositioning) 후보 예측,바이오
+83,"HELIX: Hypothesis Evolution and Literature
+Intelligence eXplorer
+for T-Cell Exhaustion Drug Repurposing",T 세포 탈진 억제 약물 재활용(drug repositioning) 후보 예측,바이오
+84,"An Open-Source, AI-Assisted Electronic Laboratory
+Notebook for the AI Transformation of Synthetic
+Biology Research","An Open-Source, AI-Assisted Electronic Laboratory Notebook for the AI Transformation of Synthetic Biology Research",바이오
+85,"Physically Grounded Root Cause Analysis in Semiconductor Manufacturing:
+A Co-Learning Framework of CNN-based Attention and VLM-based Kinematic Reasoning",Physically Grounded Root Cause Analysis in Semiconductor Manufacturing: A Co-Learning Framework of CNN-based Attention and VLM-based Kinematic Reasoning,반도체·디스플레이
+86,"Explaining observed choices in behavioral logs using
+reinforcement learning–based computational models,
+and interpreting latent computational state transitions",행동 로그로부터 SWITCHING RL기반 잠재 의사결정 전략의 자동 발견과 계산 신경과학적 해석,바이오 및 인공지능
+87,"MTTB: End-to-End Framework
+for Oxide TFT Channel Guidelines Beyond-IGZO",AI 모델 기반 AMOPLED 구동용 고성능/고신뢰성 산화물 TFT 개발을 위한 후보 탐색,반도체·디스플레이
+88,"SOFA-Reconstruction Deep Markov Model
+(SR-DMM) for Dynamic ICU Mortality Prediction
+with Clinical Notes",SOFA-Reconstruction Deep Markov Model (SR-DMM) for Dynamic ICU Mortality Prediction with Clinical Notes,"바이오 머신러닝, 데이터 사이언스"
+89,Accelerated Discovery of Deep-Blue TADF Emitters via Human-AI Collaboration: Integrating Machine Learning Screening with Chemical Intuition,고효율 청색 OLED 개발을 위한 신규 TADF 소재 AI 역설계 및 발굴,재료·화학
+90,"Towards Rapid Stress Field Prediction in
+Semiconductor Packaging using Auxiliary-Head U-Net",보조 헤드를 갖는 U-Net을 이용한 반도체 패키징 구조의 고속 응력장 예측,반도체·디스플레이
+91,Adaptive Quality Control for Spatial Transcriptomics: A Data-Driven Framework for Automated Artifact Detection,공간전사체학 적응형 품질관리 프레임워크 개발,바이오
+92,Safe Treatment Policy Optimization for Sepsis Patients via Constraint Damping Policy Optimization(CDPO),"CDPO(Constraint Damping Policy Optimization)
+알고리즘을 활용한 패혈증(Sepsis) 환자의
+안전한 투약 정책 최적화",바이오
+93,"Calibrating Mathematical 1 Biases for Arctic Safety: A
+2 Hybrid XGBoost-NHITS Framework for Sea Ice
+3 Thickness Forecasting",북극 해빙 두께 예측,지구과학
+94,"ConvergentWorld Representations and Divergent
+Tasks",Convergent World Representations and Divergent Tasks,인공지능
+95,Exploring Factors Influencing Fire Evacuation Wayfinding Confidence using Synthetic Respondent Surveys,"Exploring Factors Influencing Fire Evacuation Wayfinding
+Confidence using Synthetic Respondent Surveys","화재안전공학, 재난관리공학,
+인간공학, HCI"
+96,Safe Treatment Policy Optimization for Sepsis Patients via Constraint Damping Policy Optimization(CDPO),"CDPO(Constraint Damping Policy Optimization)
+알고리즘을 활용한 패혈증(Sepsis) 환자의
+안전한 투약 정책 최적화",바이오
+97,"Latent-Space Forecasting of URANS Wake Flows
+Across Reynolds Numbers and LLM-Assisted
+Transition Regime Identification", AI를 활용한 난류 해석을 위한 학습데이터 및 모델 구축,수학
+98,AI-Driven Inverse Design of Thermoelectric Materials Focusing on Electrical Conductivity Using Public Materials Databases,"AI-Driven Inverse Design of Thermoelectric Materials Focusing
+on Electrical Conductivity Using Public Materials Databases",재료·화학
+99,Structural Reconfiguration of AI Judgment Bias under Information Loss in 6G Communication Environments,"6G 통신 환경에서 정보 손실에 따른 AI 판단 편향의 구조적
+재구성",정보 통신 AI
+100,"SparseUrban: Conditional DDIM for Turbulent Flow
+Field Recovery",SparseUrban: Conditional DDIM for Turbulent Flow Field Recovery,에너지
+101,Comparative Analysis of Property Prediction Models for Esol and Freesolv Datasets and Regulatory Screening,AI 기반 분자 물성 예측 및 규제 리스크 분석,"화학 정보학, 머신러닝"
+102,The Impact of Structured ESG KPI Presentation Methods on Stakeholder Engagement: An LLM-Based Persona Simulation Study,구조화된 ESG KPI 프레젠테이션 방법이 이해관계자 참여에 미치는 영향: LLM 기반 페르소나 시뮬레이션 연구,ESG
+103,"Ion-driven Electron Scattering and
+Resistance Modulation in TiO2 Memristors","Ion-driven Electron Scattering and
+Resistance Modulation in TiO2 Memristors",기초과학(물리학)
+104,"Empirical Analysis of Feature-Level Data
+Minimization Trade-offs in Machine Learning",Empirical analysis of feature-level data minimization strategies and their privacy–utility trade-offs in machine learning models,Privacy-aware Machine Learning / Data Minimization
+105,"AI-Assisted Resilience Analysis of Power Grid Cascading
+Failures:
+A Network Topology-Driven Agent-Based Approach",전력망 연쇄 고장 분석을 위한 네트워크 토폴로지 기반의 AI 보조 시뮬레이션 및 회복력 분석,에너지
+106,AI Agent-Driven Multiscale Ion Bombardment Simulation Framework for Cryogenic Plasma Etching,AI Agent를 활용한 고종횡비 홀 식각 공정 최적화를 위한 멀티스케일 시뮬레이션 자동화,반도체·디스플레이
+107,Analyzing Efficacy of Specialized Convolutional Neural Networks (CNNs) in Identifying Dormant Ginkgo biloba and Prunus serrulata,Enhancing Winter Dendrology: Utilizing SLM-Driven Architectures for Leafless Tree Identification via Bark and Micro-Texture Analysis,AI-Driven Ecology
+108,"Automated Cross-PDK Standard Cell Migration with
+Graph Isomorphism-Based Topology Equivalence
+Verification",AI를 활용한 레이아웃 마이그레이션 방법 개발,반도체 설계 자동화
+109,See-ParkingNet: A Robust Imitation Learning Framework for Autonomous Mobile Robots via Geometric Perturbation of Synthetic Experts,See-ParkingNet : 가상 전문가의 기하학적 섭동을 활용한 자율 이동 로봇의 강건한 모방학습 프레임워크,인공지능(Physical AI)
+110,"Automated Literature-Based Target Ranking Reveals PAI-1
+(SERPINE1) as a Priority in IPF Aging–Fibrosis Network","섬유화·노화 네트워크 관련 폐 섬유증 치료 타겟 발굴과 약물
+후보 제안",바이오
+111,"CatAgent: Multi-Agent Orchestration for
+Electrocatalyst Discovery",CatAgent: Multi-agent orchestration for electrocatalyst discovery,LLM-Orchestrated Materials Discovery Automation
+112,Applicability analysis of large language models for AI-based concrete mix design,AI 기반 콘크리트 배합 설계를 위한 대규모 언어 모델의 적용 가능성 분석,재료·화학
+113,"Phonon-Assisted Kinetic Monte Carlo Simulation of
+Li-Ion Transport in Garnet-Type Li7La3Zr2O12",고체 전해질(LLZO)의 이온전도도를 예측하는 Kinetic Monte Carlo 시뮬레이션,이차전지
+114,Condition-Based Integration of In Vivo RNA Delivery Data Enables AI-Guided Ionizable Lipid Design,Condition-Based Integration of In Vivo RNA Delivery Data Enables AI-Guided Ionizable Lipid Design,바이오
+115,Comparative Evaluation of AI-Guided Rigid Linker Design for Bispecific T-Cell Engagers: Balancing Geometric Precision and Structural Confidence,생성형 AI를 활용한 이중특이성 항체(BiTE)의 Rigid Linker 설계 및 기하학적 최적화 연구,바이오
+116,"Network- and structure-informed prioritization of
+candidate genes associated with etofenprox
+phytotoxicity in soybean",멀티오믹스 및 AI 기반 단백질 구조 예측을 통한 작물의 Etofenprox 약해 유발 핵심 유전자 변이 규명,바이오
+117,"A Study of Performance Prediction of Natural-Wind
+Heat Exchangers for Passive Cooling",무동력 자연 냉열 회수를 위한 자연풍 환경 열교환기 성능 예측 모델 개발,에너지
+118,A TabPFN-Based Tabular Foundation Model for Property Prediction across Data-Limited Laboratory Synthesis Experimen,"A TabPFN-Based Tabular Foundation Model for Property Prediction
+across Data-Limited DFT and Laboratory Synthesis Experiments",재료과학
+119,Design of a Multi-Stage Decision-Support Pipeline for Semiconductor Manufacturing Processes,Design of a Multi-Stage Decision-Support Pipeline for Semiconductor Manufacturing Processes,반도체·디스플레이
+120,"Operator Learning for Regime-Switching Black–Cox
+First-Passage Coupled PDE Systems","Operator Learning for Regime-Switching Black–Cox
+First-Passage Coupled PDE Systems",금융 수학
+121,차세대 고엔트로피 합금 촉매 후보 예측,차세대 고엔트로피 합금 촉매 후보 예측,재료·화학
+122,"MOSAIC-ST: Multimodal Integration of
+Spatial Transcriptomics and Whole-Slide Images for
+Tumor Prediction",연구주제 ST + WSI 멀티모달 데이터를 이용한 tumor 예측 XAI 모델,바이오
+123,Task-Oriented Suitability Analysis of Large Language Models as Research Collaborators,연구 과업 유형에 따른 LLM 연구동반자 적합성 자동 추론,컴퓨터과학
+124,Open-source PDK-based Automatic Window Classification System for Near-Threshold Logic NMOS Design Using Machine Learning,AI 기반 NMOS 공정 변동성 및 PPA 설계 윈도우 예측,"반도체 소자, 반도체 공정, AI"
+125,Accelerating the Identification of Optimal Multi-epitope Combinations for Deep Learning-Based mRNA Vaccines,딥러닝 기반 생략-가능 규칙을 활용한 다중 에피톱 mRNA 백신 에피톱 후보 도출 가속화 연구,바이오
+126,Convergent Generative AI Assessment of Mechanistic Claims in PTP1B-Centered Metabolic Regulation,"Data-Conditioned AI Strategies for Natural Product Drug
+Discovery",바이오
+127,,,
+128,,,
+129,,,
+130,,,
+131,,,
+132,,,
+133,,,
+134,,,
+135,,,
+136,,,
+137,,,
+138,,,
+139,,,
+140,,,
+141,,,
+142,,,
+143,,,
+144,,,
+145,,,
+146,,,
+147,,,
+148,,,
+149,,,
+150,,,
+151,,,
+152,,,
+153,,,
+154,,,
+155,,,
+156,,,
+157,,,
+158,,,
+159,,,
+160,,,
+161,,,
+162,,,
+163,,,
+164,,,
+165,,,
+166,,,
+167,,,
+168,,,
+169,,,
+170,,,
+171,,,
+172,,,
+173,,,
+174,,,
+175,,,
+176,,,
+177,,,
+178,,,
+179,,,
+180,,,
+181,,,
+182,,,
+183,,,
+184,,,
+185,,,
+186,,,
+187,,,
+188,,,
+189,,,
+190,,,
+191,,,
+192,,,
+193,,,
+194,,,
+195,,,
+196,,,
+197,,,
+198,,,
+199,,,
+200,,,
+201,,,
+202,,,
+203,,,
+204,,,
+205,,,
+206,,,
+207,,,
+208,,,
+209,,,
+210,,,
+211,,,
+212,,,
+213,,,
+214,,,
+215,,,
+216,,,
+217,,,
+218,,,
+219,,,
+220,,,
+221,,,
+222,,,
+223,,,
+224,,,
+225,,,
+226,,,
+227,,,
+228,,,
+229,,,
+230,,,
+231,,,
+232,,,
+233,,,
+234,,,
+235,,,
+236,,,
+237,,,
+238,,,
+239,,,
+240,,,
+241,,,
+242,,,
+243,,,
+244,,,
+245,,,
+246,,,
+247,,,
+248,,,
+249,,,
+250,,,
+251,,,
+252,,,
+253,,,
+254,,,
+255,,,
+256,,,
+257,,,
+258,,,
+259,,,
+260,,,
+261,,,
+262,,,
+263,,,
+264,,,
+265,,,
+266,,,
+267,,,
+268,,,
+269,,,
+270,,,
+271,,,

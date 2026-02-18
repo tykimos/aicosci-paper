@@ -22,11 +22,8 @@ export async function POST(request: NextRequest) {
 
       if (existingSession) {
         // Update last_active_at
-        await (supabase as unknown as {
-          from: (table: string) => {
-            update: (data: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> }
-          }
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any)
           .from('anonymous_sessions')
           .update({ last_active_at: new Date().toISOString() })
           .eq('id', session_id);
@@ -36,15 +33,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new session
-    const { data: newSession, error } = await (supabase as unknown as {
-      from: (table: string) => {
-        insert: (data: Record<string, unknown>) => {
-          select: (cols: string) => {
-            single: () => Promise<{ data: { id: string } | null; error: unknown }>
-          }
-        }
-      }
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newSession, error } = await (supabase as any)
       .from('anonymous_sessions')
       .insert({
         fingerprint: fingerprint || null,

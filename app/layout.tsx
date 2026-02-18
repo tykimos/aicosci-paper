@@ -13,9 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AI CoSci Paper Review',
-  description: 'AI 과학 논문 리뷰 시스템 - 137편의 논문을 효율적으로 탐색, 열람, 설문할 수 있는 플랫폼',
-  keywords: ['AI', '논문', '리뷰', '설문', 'paper review'],
+  title: 'AI-CO-SCI',
+  description: '',
 };
 
 export default function RootLayout({

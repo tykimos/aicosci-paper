@@ -62,8 +62,8 @@ export function ChatInterface({
       setLastReadCount(paperReadCount);
       // Add encouragement message for paper reading
       const encourageMessages = [
-        `대단해요! 벌써 ${paperReadCount}번째 논문을 살펴보고 계시네요! 🎉`,
-        `훌륭해요! 논문을 꼼꼼히 살펴보시는 모습이 인상적이에요!`,
+        `대단해요! 벌써 ${paperReadCount}번째 연구보고서를 살펴보고 계시네요! 🎉`,
+        `훌륭해요! 연구보고서를 꼼꼼히 살펴보시는 모습이 인상적이에요!`,
         `와! 연구에 대한 관심이 느껴집니다! 계속 파이팅! 💪`,
       ];
       const randomMsg = encourageMessages[Math.floor(Math.random() * encourageMessages.length)];
@@ -72,9 +72,9 @@ export function ChatInterface({
         const encourageMessage: Message = {
           id: `encourage-${Date.now()}`,
           role: 'assistant',
-          content: `${randomMsg}\n\n현재까지 ${paperReadCount}개의 논문을 확인하셨어요. 설문도 함께 참여해 주시면 더욱 감사하겠습니다!`,
+          content: `${randomMsg}\n\n현재까지 ${paperReadCount}개의 연구보고서를 확인하셨어요. 설문도 함께 참여해 주시면 더욱 감사하겠습니다!`,
           timestamp: new Date(),
-          promptButtons: ['설문 참여하기', '다음 논문 추천해줘'],
+          promptButtons: ['설문 참여하기', '다음 연구보고서 추천해줘'],
         };
         setMessages((prev) => [...prev, encourageMessage]);
       }
@@ -90,7 +90,7 @@ export function ChatInterface({
         role: 'assistant',
         content: `정말 멋져요! 🎊 ${surveyCompleteCount}번째 설문을 완료하셨네요!\n\n여러분의 소중한 피드백이 AI 과학 연구 발전에 큰 기여가 됩니다. 진심으로 감사드립니다!`,
         timestamp: new Date(),
-        promptButtons: ['다른 논문 보기', '추천 논문 알려줘'],
+        promptButtons: ['다른 연구보고서 보기', '추천 연구보고서 알려줘'],
       };
       setMessages((prev) => [...prev, celebrateMessage]);
     }
@@ -323,7 +323,7 @@ export function ChatInterface({
           {messages.length === 0 && !isStreaming && (
             <div className="flex items-center justify-center h-full min-h-[120px]">
               <p className="text-muted-foreground text-sm font-light tracking-wide text-center">
-                논문에 대해 궁금한 점을<br/>물어보세요
+                연구보고서에 대해 궁금한 점을<br/>물어보세요
               </p>
             </div>
           )}
