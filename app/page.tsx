@@ -178,14 +178,14 @@ export default function HomePage() {
                 >
                   {isSurveyCollapsed ? <ChevronLeft className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                 </button>
-                {!isSurveyCollapsed && (
+                <div className={cn(isSurveyCollapsed && 'hidden')}>
                   <SurveySidebar
                     paperId={selectedPaperId}
                     sessionId={sessionId}
                     onPaperSelect={setSelectedPaperId}
                     onSurveyComplete={handleSurveyComplete}
                   />
-                )}
+                </div>
               </>
             )}
           </div>
@@ -234,20 +234,18 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* Chat Interface */}
-              {!isChatCollapsed && (
-                <div className="flex-1 min-h-0 overflow-hidden">
-                  <ChatInterface
-                    paperId={selectedPaperId}
-                    onSearchResults={handleSearchResults}
-                    onPaperSelect={setSelectedPaperId}
-                    sessionId={sessionId}
-                    onMessageSent={handleChatMessage}
-                    paperReadCount={stats.cumulative.totalPaperViews}
-                    surveyCompleteCount={stats.cumulative.totalSurveys}
-                  />
-                </div>
-              )}
+              {/* Chat Interface - always mounted, hidden when collapsed */}
+              <div className={cn('flex-1 min-h-0 overflow-hidden', isChatCollapsed && 'hidden')}>
+                <ChatInterface
+                  paperId={selectedPaperId}
+                  onSearchResults={handleSearchResults}
+                  onPaperSelect={setSelectedPaperId}
+                  sessionId={sessionId}
+                  onMessageSent={handleChatMessage}
+                  paperReadCount={stats.cumulative.totalPaperViews}
+                  surveyCompleteCount={stats.cumulative.totalSurveys}
+                />
+              </div>
             </div>
           )}
         </div>
