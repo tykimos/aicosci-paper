@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, ClipboardList, Users } from 'lucide-react';
+import { FileText, ClipboardList, Users, BookOpen } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -25,11 +25,14 @@ interface Stats {
   total_surveys: number;
   total_participants: number;
   today_surveys: number;
+  total_reads: number;
+  today_reads: number;
 }
 
 interface DailyEntry {
   date: string;
   surveys: number;
+  reads: number;
   new_sessions: number;
 }
 
@@ -105,13 +108,20 @@ export default function AdminDashboardPage() {
       color: 'text-blue-500',
     },
     {
+      title: '논문 읽기',
+      value: stats?.total_reads ?? 0,
+      subtitle: stats ? `오늘 +${stats.today_reads}` : null,
+      icon: BookOpen,
+      color: 'text-orange-500',
+    },
+    {
       title: '총 설문',
       value: stats?.total_surveys ?? 0,
       subtitle: stats ? `오늘 +${stats.today_surveys}` : null,
       icon: ClipboardList,
       color: 'text-green-500',
     },
-{
+    {
       title: '참여자 수',
       value: stats?.total_participants ?? 0,
       subtitle: null,
@@ -123,6 +133,7 @@ export default function AdminDashboardPage() {
   // Prepare chart data
   const dailyChartData = daily.map((d) => ({
     date: d.date.slice(5), // MM-DD
+    읽기: d.reads,
     설문: d.surveys,
     신규참여: d.new_sessions,
   }));
@@ -143,7 +154,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -193,6 +204,14 @@ export default function AdminDashboardPage() {
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="읽기"
+                    stroke="#f97316"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="설문"

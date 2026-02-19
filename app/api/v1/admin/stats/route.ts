@@ -10,11 +10,13 @@ export async function GET() {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-    const [papers, surveys, participants, todaySurveys] = await Promise.all([
+    const [papers, surveys, participants, todaySurveys, reads, todayReads] = await Promise.all([
       supabase.from('papers').select('*', { count: 'exact', head: true }).is('deleted_at', null),
       supabase.from('surveys').select('*', { count: 'exact', head: true }),
       supabase.from('anonymous_sessions').select('*', { count: 'exact', head: true }),
       supabase.from('surveys').select('*', { count: 'exact', head: true }).gte('completed_at', today),
+      (supabase as any).from('paper_read_progress').select('*', { count: 'exact', head: true }),
+      (supabase as any).from('paper_read_progress').select('*', { count: 'exact', head: true }).gte('created_at', today),
     ]);
 
     return successResponse({
@@ -22,6 +24,8 @@ export async function GET() {
       total_surveys: surveys.count || 0,
       total_participants: participants.count || 0,
       today_surveys: todaySurveys.count || 0,
+      total_reads: reads.count || 0,
+      today_reads: todayReads.count || 0,
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
