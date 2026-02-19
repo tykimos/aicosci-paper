@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 interface ProgressRequest {
   sessionId: string;
@@ -35,7 +35,7 @@ export async function POST(
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Upsert reading progress using rpc or raw query
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,7 +100,7 @@ export async function GET(
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
