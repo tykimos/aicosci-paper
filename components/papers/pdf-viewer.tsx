@@ -11,12 +11,14 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface PDFViewerProps {
   fileUrl: string;
+  paperId?: string;
+  sessionId?: string;
 }
 
 type LoadStep = 'worker' | 'container' | 'download' | 'render';
 type StepState = 'pending' | 'loading' | 'done' | 'error';
 
-export function PDFViewer({ fileUrl }: PDFViewerProps) {
+export function PDFViewer({ fileUrl, paperId, sessionId }: PDFViewerProps) {
   const [numPages, setNumPages] = useState(0);
   const [zoom, setZoom] = useState(1.0);
   const [containerWidth, setContainerWidth] = useState(600);
@@ -79,12 +81,54 @@ export function PDFViewer({ fileUrl }: PDFViewerProps) {
     setStep('download', 'error', err.message);
   };
 
-  // Scroll for progress
+  // Track reading progress
+  const progressSentRef = useRef(false);
+  const startTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    progressSentRef.current = false;
+    startTimeRef.current = Date.now();
+  }, [paperId]);
+
+  const sendProgress = useCallback((scrollPct: number) => {
+    if (!paperId || !sessionId || progressSentRef.current) return;
+    progressSentRef.current = true;
+    const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
+    fetch(`/api/v1/papers/${paperId}/progress`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        scrollPercentage: scrollPct,
+        readComplete: scrollPct >= 80,
+        timeSpentSeconds: timeSpent,
+      }),
+    }).catch(() => {});
+  }, [paperId, sessionId]);
+
+  // Send progress on document load (user opened the paper)
+  useEffect(() => {
+    if (allDone && paperId && sessionId && !progressSentRef.current) {
+      sendProgress(0);
+    }
+  }, [allDone, paperId, sessionId, sendProgress]);
+
+  // Scroll tracking - update progress when user scrolls past thresholds
+  const lastPctRef = useRef(0);
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     if (scrollHeight <= clientHeight) return;
-  }, []);
+    const pct = Math.round((scrollTop / (scrollHeight - clientHeight)) * 100);
+    if (pct > lastPctRef.current) {
+      lastPctRef.current = pct;
+      // Update at 25%, 50%, 80%, 100%
+      if (pct >= 25 && paperId && sessionId) {
+        progressSentRef.current = false;
+        sendProgress(pct);
+      }
+    }
+  }, [paperId, sessionId, sendProgress]);
 
   useEffect(() => {
     const el = containerRef.current;

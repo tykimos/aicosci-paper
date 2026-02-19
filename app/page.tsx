@@ -163,6 +163,7 @@ export default function HomePage() {
             <main className="flex-1 min-h-0 overflow-hidden">
               <PaperViewer
                 paperId={selectedPaperId}
+                sessionId={sessionId}
                 isFullscreen={isFullscreen}
                 onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
               />

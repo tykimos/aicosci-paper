@@ -7,6 +7,8 @@ import type { Paper } from '@/types/database';
 
 interface PDFViewerProps {
   fileUrl: string;
+  paperId?: string;
+  sessionId?: string;
 }
 
 // Module loading state
@@ -44,12 +46,14 @@ if (typeof window !== 'undefined') {
 
 interface PaperViewerProps {
   paperId: string | null;
+  sessionId?: string;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
 }
 
 export function PaperViewer({
   paperId,
+  sessionId,
   isFullscreen,
   onToggleFullscreen,
 }: PaperViewerProps) {
@@ -278,7 +282,7 @@ export function PaperViewer({
 
         {/* react-pdf viewer (when loaded) */}
         {actualMode === 'react-pdf' && ReactPDFViewer && (
-          <ReactPDFViewer fileUrl={paper.file_url} />
+          <ReactPDFViewer fileUrl={paper.file_url} paperId={paperId || undefined} sessionId={sessionId} />
         )}
 
         {/* iframe viewer */}
