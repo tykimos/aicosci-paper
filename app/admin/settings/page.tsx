@@ -18,7 +18,6 @@ interface AdminMe {
 interface SysStats {
   total_papers: number;
   total_surveys: number;
-  total_votes: number;
   total_participants: number;
 }
 
@@ -185,7 +184,6 @@ export default function AdminSettingsPage() {
             <>
               <InfoRow label="총 논문 수" value={stats.total_papers.toLocaleString()} />
               <InfoRow label="총 설문 응답" value={stats.total_surveys.toLocaleString()} />
-              <InfoRow label="총 투표 수" value={stats.total_votes.toLocaleString()} />
               <InfoRow label="총 참여자 수" value={stats.total_participants.toLocaleString()} />
             </>
           ) : (

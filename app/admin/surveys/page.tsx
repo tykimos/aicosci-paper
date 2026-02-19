@@ -47,7 +47,7 @@ interface SurveyRow {
   paper_id: string;
   paper_title: string;
   responses: Array<{ questionId: string; value: string }>;
-  created_at: string;
+  completed_at: string;
 }
 
 interface AggregateData {
@@ -334,7 +334,7 @@ function ResponseListTab() {
     fetch('/api/v1/papers?limit=200')
       .then((r) => r.json())
       .then((data) => {
-        if (data.success) setPapers(data.data || []);
+        if (data.success) setPapers(data.data?.papers || []);
       })
       .catch(() => {});
   }, []);
@@ -362,8 +362,8 @@ function ResponseListTab() {
       const res = await fetch(`/api/v1/admin/surveys?${params}`);
       const data = await res.json();
       if (data.success) {
-        setSurveys(data.data || []);
-        const total = data.total ?? 0;
+        setSurveys(data.data?.surveys || []);
+        const total = data.meta?.total ?? 0;
         setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
       }
     } catch {
@@ -449,7 +449,7 @@ function ResponseListTab() {
                     <TableCell className="text-center">
                       <Badge variant="outline">{getResponseValue(s.responses, 'q2-5') || '-'}</Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{formatDate(s.created_at)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(s.completed_at)}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -499,7 +499,7 @@ function StatsAnalysisTab() {
   useEffect(() => {
     fetch('/api/v1/papers?limit=200')
       .then((r) => r.json())
-      .then((data) => { if (data.success) setPapers(data.data || []); })
+      .then((data) => { if (data.success) setPapers(data.data?.papers || []); })
       .catch(() => {});
   }, []);
 

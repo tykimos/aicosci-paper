@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, ClipboardList, ThumbsUp, Users } from 'lucide-react';
+import { FileText, ClipboardList, Users } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -23,23 +23,19 @@ import {
 interface Stats {
   total_papers: number;
   total_surveys: number;
-  total_votes: number;
   total_participants: number;
   today_surveys: number;
-  today_votes: number;
 }
 
 interface DailyEntry {
   date: string;
   surveys: number;
-  votes: number;
   new_sessions: number;
 }
 
 interface PaperStat {
   id: string;
   title: string;
-  vote_count: number;
   survey_count: number;
 }
 
@@ -115,14 +111,7 @@ export default function AdminDashboardPage() {
       icon: ClipboardList,
       color: 'text-green-500',
     },
-    {
-      title: '총 투표',
-      value: stats?.total_votes ?? 0,
-      subtitle: stats ? `오늘 +${stats.today_votes}` : null,
-      icon: ThumbsUp,
-      color: 'text-orange-500',
-    },
-    {
+{
       title: '참여자 수',
       value: stats?.total_participants ?? 0,
       subtitle: null,
@@ -135,14 +124,12 @@ export default function AdminDashboardPage() {
   const dailyChartData = daily.map((d) => ({
     date: d.date.slice(5), // MM-DD
     설문: d.surveys,
-    투표: d.votes,
     신규참여: d.new_sessions,
   }));
 
   const papersChartData = papers.map((p) => ({
     name: truncate(p.title, 20),
     설문: p.survey_count,
-    투표: p.vote_count,
   }));
 
   const orgDistData = distToArray(aggregate?.distributions?.['q1-organization']);
@@ -156,7 +143,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -214,15 +201,7 @@ export default function AdminDashboardPage() {
                     dot={false}
                     activeDot={{ r: 4 }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="투표"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
+<Line
                     type="monotone"
                     dataKey="신규참여"
                     stroke="#a855f7"

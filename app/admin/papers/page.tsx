@@ -23,22 +23,19 @@ interface Paper {
   abstract: string;
   file_url: string;
   tags: string[];
-  vote_count: number;
   survey_count: number;
   created_at: string;
 }
 
-type SortOption = 'newest' | 'votes' | 'surveys';
+type SortOption = 'newest' | 'surveys';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'newest', label: '최신순' },
-  { value: 'votes', label: '투표순' },
   { value: 'surveys', label: '설문순' },
 ];
 
 const SORT_API_MAP: Record<SortOption, string> = {
   newest: 'newest',
-  votes: 'votes',
   surveys: 'surveys',
 };
 
@@ -151,7 +148,6 @@ export default function AdminPapersPage() {
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead>제목</TableHead>
                   <TableHead className="w-32">연구분야</TableHead>
-                  <TableHead className="w-16 text-center">투표</TableHead>
                   <TableHead className="w-16 text-center">설문</TableHead>
                   <TableHead className="w-28 text-right">등록일</TableHead>
                 </TableRow>
@@ -159,7 +155,7 @@ export default function AdminPapersPage() {
               <TableBody>
                 {papers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
                       검색 결과가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -181,7 +177,6 @@ export default function AdminPapersPage() {
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-center">{paper.vote_count}</TableCell>
                       <TableCell className="text-center">{paper.survey_count}</TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground">
                         {formatDate(paper.created_at)}
