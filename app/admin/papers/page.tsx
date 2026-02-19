@@ -39,7 +39,7 @@ const SORT_API_MAP: Record<SortOption, string> = {
   surveys: 'surveys',
 };
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 200;
 
 export default function AdminPapersPage() {
   const [papers, setPapers] = useState<Paper[]>([]);
