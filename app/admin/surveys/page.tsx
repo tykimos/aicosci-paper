@@ -226,13 +226,11 @@ function SurveyDetailDialog({
   if (!survey) return null;
   const r = survey.responses;
 
-  const matrixItems: { id: string; label: string }[] = [
-    { id: 'q2-2-accuracy', label: '정확성' },
-    { id: 'q2-2-clarity', label: '명확성' },
-    { id: 'q2-2-novelty', label: '새로움' },
-    { id: 'q2-2-applicability', label: '적용 가능성' },
-    { id: 'q2-2-completeness', label: '완결성' },
-  ];
+  let matrixData: Record<string, string> = {};
+  try {
+    const raw = getResponseValue(r, 'q2-2');
+    if (raw) matrixData = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch { /* ignore */ }
 
   function field(label: string, value: string) {
     return (
@@ -272,13 +270,17 @@ function SurveyDetailDialog({
               {field('전반적 평가 (q2-1)', getResponseValue(r, 'q2-1'))}
               <div className="text-sm">
                 <p className="text-muted-foreground mb-1">세부 평가 (q2-2 매트릭스)</p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 pl-2">
-                  {matrixItems.map((item) => (
-                    <div key={item.id} className="flex gap-1">
-                      <span className="text-muted-foreground text-xs min-w-[80px]">{item.label}</span>
-                      <span className="text-xs font-medium">{getResponseValue(r, item.id) || '-'}</span>
-                    </div>
-                  ))}
+                <div className="space-y-1 pl-2">
+                  {Object.keys(matrixData).length === 0 ? (
+                    <span className="text-xs text-muted-foreground">-</span>
+                  ) : (
+                    Object.entries(matrixData).map(([item, scale]) => (
+                      <div key={item} className="flex gap-2">
+                        <span className="text-muted-foreground text-xs min-w-[180px]">{item}</span>
+                        <span className="text-xs font-medium">{scale || '-'}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
               {field('공개 가치 (q2-3)', getResponseValue(r, 'q2-3'))}
