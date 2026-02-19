@@ -248,7 +248,7 @@ function SurveyDetailDialog({
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base leading-snug">{survey.paper_title}</DialogTitle>
-          <p className="text-xs text-muted-foreground mt-1">{formatDate(survey.created_at)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{formatDate(survey.completed_at)}</p>
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
