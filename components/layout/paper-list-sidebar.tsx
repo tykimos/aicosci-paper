@@ -48,7 +48,13 @@ export function PaperListSidebar({
         const data = await response.json();
 
         if (data.success) {
-          setPapers(data.data.papers);
+          // Shuffle papers randomly
+          const shuffled = [...(data.data.papers as Paper[])];
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+          setPapers(shuffled);
           // Extract unique tags
           const allTags = data.data.papers.flatMap((p: Paper) => p.tags || []);
           const uniqueTags = [...new Set(allTags)] as string[];
