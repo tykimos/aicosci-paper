@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Settings, FileText, ClipboardList, MessageSquare, Award, Loader2 } from 'lucide-react';
@@ -40,12 +40,17 @@ interface HeaderProps {
 export function Header({ stats, badges }: HeaderProps) {
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // Reset loading state when page is restored from bfcache (browser back)
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setIsNavigating(false);
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   const handleAdminClick = () => {
     setIsNavigating(true);
-    // Use full page navigation (not router.push) because this crosses
-    // layout boundaries (main → admin) and involves middleware redirects.
-    // Soft client-side navigation can hang when the page has heavy state
-    // like PDF rendering or streaming chat.
     window.location.href = '/admin/login';
   };
 
