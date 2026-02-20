@@ -23,6 +23,7 @@ interface ChatInterfaceProps {
   onSearchResults: (papers: Paper[]) => void;
   onPaperSelect: (paperId: string) => void;
   sessionId: string;
+  chatSessionId?: string;
   onMessageSent?: () => void;
   paperReadCount?: number;
   surveyCompleteCount?: number;
@@ -33,6 +34,7 @@ export function ChatInterface({
   onSearchResults,
   onPaperSelect,
   sessionId,
+  chatSessionId,
   onMessageSent,
   paperReadCount = 0,
   surveyCompleteCount = 0,
@@ -96,14 +98,15 @@ export function ChatInterface({
     }
   }, [surveyCompleteCount, lastSurveyCount, isStreaming, messages.length]);
 
-  // Save messages to DB
+  // Save messages to DB (use chatSessionId for per-visit tracking, fallback to sessionId)
+  const saveChatId = chatSessionId || sessionId;
   const saveMessages = async (msgs: { role: string; content: string }[], currentPaperId?: string | null) => {
     try {
       await fetch('/api/v1/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_id: sessionId,
+          session_id: saveChatId,
           paper_id: currentPaperId || null,
           messages: msgs,
         }),

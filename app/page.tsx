@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, List, FileText, ClipboardList } from 'lucide-react';
 import { Header } from '@/components/layout/header';
@@ -26,6 +26,8 @@ export default function HomePage() {
   const [isSurveyCollapsed, setIsSurveyCollapsed] = useState(false);
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
   const [mobileTab, setMobileTab] = useState<'list' | 'viewer' | 'survey'>('list');
+  // Unique chat session ID per page load (separate from persistent anonymous session)
+  const chatSessionId = useMemo(() => uuidv4(), []);
   const prevPaperIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
@@ -318,6 +320,7 @@ export default function HomePage() {
                   onSearchResults={handleSearchResults}
                   onPaperSelect={setSelectedPaperId}
                   sessionId={sessionId}
+                  chatSessionId={chatSessionId}
                   onMessageSent={handleChatMessage}
                   paperReadCount={stats.cumulative.totalPaperViews}
                   surveyCompleteCount={stats.cumulative.totalSurveys}
