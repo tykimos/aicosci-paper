@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 interface Paper {
   id: string;
@@ -25,13 +25,21 @@ interface Paper {
   tags: string[];
   survey_count: number;
   created_at: string;
+  hidden_at?: string | null;
 }
 
 type SortOption = 'newest' | 'surveys';
+type VisibilityFilter = 'all' | 'visible' | 'hidden';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'newest', label: '최신순' },
   { value: 'surveys', label: '설문순' },
+];
+
+const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string }[] = [
+  { value: 'all', label: '전체' },
+  { value: 'visible', label: '공개' },
+  { value: 'hidden', label: '숨김' },
 ];
 
 const SORT_API_MAP: Record<SortOption, string> = {
@@ -48,7 +56,9 @@ export default function AdminPapersPage() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortOption>('newest');
+  const [visibility, setVisibility] = useState<VisibilityFilter>('all');
   const [page, setPage] = useState(1);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchPapers = useCallback(async () => {
     setIsLoading(true);
@@ -56,6 +66,7 @@ export default function AdminPapersPage() {
       const params = new URLSearchParams();
       params.set('limit', String(PAGE_SIZE));
       params.set('page', String(page));
+      params.set('include_hidden', 'true');
       if (search) params.set('search', search);
       params.set('sort', SORT_API_MAP[sort]);
 
@@ -86,7 +97,41 @@ export default function AdminPapersPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  const toggleVisibility = async (paperId: string, currentlyHidden: boolean) => {
+    setTogglingId(paperId);
+    try {
+      const res = await fetch(`/api/v1/admin/papers/${paperId}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hidden: !currentlyHidden }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPapers((prev) =>
+          prev.map((p) =>
+            p.id === paperId
+              ? { ...p, hidden_at: data.data.hidden ? new Date().toISOString() : null }
+              : p
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Client-side visibility filter
+  const filteredPapers = papers.filter((p) => {
+    if (visibility === 'visible') return !p.hidden_at;
+    if (visibility === 'hidden') return !!p.hidden_at;
+    return true;
+  });
+
+  const hiddenCount = papers.filter((p) => !!p.hidden_at).length;
 
   function formatDate(iso: string) {
     return iso ? iso.split('T')[0] : '-';
@@ -97,7 +142,9 @@ export default function AdminPapersPage() {
       <div>
         <h1 className="text-2xl font-bold">연구보고서 목록</h1>
         <p className="text-muted-foreground">
-          {isLoading ? '불러오는 중...' : `총 ${total.toLocaleString()}개의 연구보고서`}
+          {isLoading
+            ? '불러오는 중...'
+            : `총 ${total.toLocaleString()}개${hiddenCount > 0 ? ` (숨김 ${hiddenCount}개)` : ''}`}
         </p>
       </div>
 
@@ -113,6 +160,20 @@ export default function AdminPapersPage() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-9"
               />
+            </div>
+
+            {/* Visibility filter */}
+            <div className="flex gap-1">
+              {VISIBILITY_OPTIONS.map((opt) => (
+                <Button
+                  key={opt.value}
+                  variant={visibility === opt.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setVisibility(opt.value)}
+                >
+                  {opt.label}
+                </Button>
+              ))}
             </div>
 
             {/* Sort */}
@@ -150,39 +211,66 @@ export default function AdminPapersPage() {
                   <TableHead className="w-32">연구분야</TableHead>
                   <TableHead className="w-16 text-center">설문</TableHead>
                   <TableHead className="w-28 text-right">등록일</TableHead>
+                  <TableHead className="w-16 text-center">공개</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {papers.length === 0 ? (
+                {filteredPapers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                       검색 결과가 없습니다.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  papers.map((paper, idx) => (
-                    <TableRow key={paper.id}>
-                      <TableCell className="text-center text-muted-foreground text-sm">
-                        {(page - 1) * PAGE_SIZE + idx + 1}
-                      </TableCell>
-                      <TableCell className="font-medium max-w-[320px]">
-                        <span className="line-clamp-2 leading-snug">{paper.title}</span>
-                      </TableCell>
-                      <TableCell>
-                        {paper.tags.length > 0 ? (
-                          <Badge variant="secondary" className="text-xs truncate max-w-[112px]">
-                            {paper.tags[0]}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">{paper.survey_count}</TableCell>
-                      <TableCell className="text-right text-sm text-muted-foreground">
-                        {formatDate(paper.created_at)}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  filteredPapers.map((paper, idx) => {
+                    const isHidden = !!paper.hidden_at;
+                    return (
+                      <TableRow key={paper.id} className={isHidden ? 'opacity-50' : ''}>
+                        <TableCell className="text-center text-muted-foreground text-sm">
+                          {(page - 1) * PAGE_SIZE + idx + 1}
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[320px]">
+                          <div className="flex items-center gap-2">
+                            <span className="line-clamp-2 leading-snug">{paper.title}</span>
+                            {isHidden && (
+                              <Badge variant="destructive" className="text-[10px] shrink-0">
+                                숨김
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {paper.tags.length > 0 ? (
+                            <Badge variant="secondary" className="text-xs truncate max-w-[112px]">
+                              {paper.tags[0]}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">{paper.survey_count}</TableCell>
+                        <TableCell className="text-right text-sm text-muted-foreground">
+                          {formatDate(paper.created_at)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            disabled={togglingId === paper.id}
+                            onClick={() => toggleVisibility(paper.id, isHidden)}
+                            title={isHidden ? '공개로 전환' : '숨기기'}
+                          >
+                            {isHidden ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-green-600" />
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

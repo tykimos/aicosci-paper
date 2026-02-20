@@ -142,7 +142,8 @@ export async function POST(request: NextRequest) {
       .from('papers')
       .select('*')
       .in('id', paperIds)
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .is('hidden_at' as string, null);
 
     if (papersError) {
       console.error('Error fetching papers:', papersError);

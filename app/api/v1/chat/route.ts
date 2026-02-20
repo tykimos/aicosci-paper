@@ -68,6 +68,7 @@ async function searchPapers(
         .from('papers')
         .select('id, title, authors, abstract, tags')
         .is('deleted_at', null)
+        .is('hidden_at' as string, null)
         .or(`title.ilike.%${query}%,abstract.ilike.%${query}%`)
         .limit(topK);
 

@@ -78,6 +78,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .select('id')
       .eq('id', paperId)
       .is('deleted_at', null)
+      .is('hidden_at' as string, null)
       .single();
 
     if (!paper) {

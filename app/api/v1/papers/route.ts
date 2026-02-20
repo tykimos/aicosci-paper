@@ -18,11 +18,17 @@ export async function GET(request: NextRequest) {
     const tags = searchParams.getAll('tags');
     const sort = searchParams.get('sort') || 'newest';
 
+    const includeHidden = searchParams.get('include_hidden') === 'true';
+
     // Build query
     let query = supabase
       .from('papers')
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
+
+    if (!includeHidden) {
+      query = query.is('hidden_at' as string, null);
+    }
 
     // Search filter
     if (search) {

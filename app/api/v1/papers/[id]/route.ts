@@ -21,6 +21,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .select('*')
       .eq('id', id)
       .is('deleted_at', null)
+      .is('hidden_at' as string, null)
       .single();
 
     if (error || !paper) {
