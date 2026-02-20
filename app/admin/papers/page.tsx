@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Eye, EyeOff, ArrowUpDown, ArrowDown, ArrowUp } from 'lucide-react';
 
 interface Paper {
   id: string;
@@ -28,13 +28,13 @@ interface Paper {
   hidden_at?: string | null;
 }
 
-type SortOption = 'newest' | 'surveys';
-type VisibilityFilter = 'all' | 'visible' | 'hidden';
+interface PaperWithStats extends Paper {
+  read_count: number;
+}
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'newest', label: '최신순' },
-  { value: 'surveys', label: '설문순' },
-];
+type VisibilityFilter = 'all' | 'visible' | 'hidden';
+type SortKey = 'newest' | 'reads' | 'surveys';
+type SortDir = 'asc' | 'desc';
 
 const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string }[] = [
   { value: 'all', label: '전체' },
@@ -42,20 +42,16 @@ const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string }[] = [
   { value: 'hidden', label: '숨김' },
 ];
 
-const SORT_API_MAP: Record<SortOption, string> = {
-  newest: 'newest',
-  surveys: 'surveys',
-};
-
 const PAGE_SIZE = 200;
 
 export default function AdminPapersPage() {
-  const [papers, setPapers] = useState<Paper[]>([]);
+  const [papers, setPapers] = useState<PaperWithStats[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortOption>('newest');
+  const [sortKey, setSortKey] = useState<SortKey>('newest');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [visibility, setVisibility] = useState<VisibilityFilter>('all');
   const [page, setPage] = useState(1);
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -68,27 +64,39 @@ export default function AdminPapersPage() {
       params.set('page', String(page));
       params.set('include_hidden', 'true');
       if (search) params.set('search', search);
-      params.set('sort', SORT_API_MAP[sort]);
+      params.set('sort', 'newest');
 
-      const response = await fetch(`/api/v1/papers?${params}`);
-      const data = await response.json();
+      const [papersRes, readsRes] = await Promise.all([
+        fetch(`/api/v1/papers?${params}`),
+        fetch('/api/v1/admin/stats/reads'),
+      ]);
 
-      if (data.success) {
-        setPapers(data.data.papers || []);
-        setTotal(data.data.total || 0);
+      const papersData = await papersRes.json();
+      const readsData = await readsRes.json();
+
+      if (papersData.success) {
+        const rawPapers: Paper[] = papersData.data.papers || [];
+        const readCounts: Record<string, number> = readsData.success ? (readsData.data?.counts || {}) : {};
+
+        const withStats: PaperWithStats[] = rawPapers.map((p) => ({
+          ...p,
+          read_count: readCounts[p.id] || 0,
+        }));
+
+        setPapers(withStats);
+        setTotal(papersData.data.total || 0);
       }
     } catch (error) {
       console.error('Error fetching papers:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [search, sort, page]);
+  }, [search, page]);
 
   useEffect(() => {
     fetchPapers();
   }, [fetchPapers]);
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -122,14 +130,43 @@ export default function AdminPapersPage() {
     }
   };
 
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === 'desc'
+      ? <ArrowDown className="h-3 w-3 ml-1" />
+      : <ArrowUp className="h-3 w-3 ml-1" />;
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // Client-side visibility filter
-  const filteredPapers = papers.filter((p) => {
-    if (visibility === 'visible') return !p.hidden_at;
-    if (visibility === 'hidden') return !!p.hidden_at;
-    return true;
-  });
+  // Client-side visibility filter + sort
+  const filteredPapers = papers
+    .filter((p) => {
+      if (visibility === 'visible') return !p.hidden_at;
+      if (visibility === 'hidden') return !!p.hidden_at;
+      return true;
+    })
+    .sort((a, b) => {
+      const dir = sortDir === 'desc' ? -1 : 1;
+      switch (sortKey) {
+        case 'reads':
+          return (a.read_count - b.read_count) * dir;
+        case 'surveys':
+          return (a.survey_count - b.survey_count) * dir;
+        case 'newest':
+        default:
+          return a.created_at.localeCompare(b.created_at) * dir;
+      }
+    });
 
   const hiddenCount = papers.filter((p) => !!p.hidden_at).length;
 
@@ -151,7 +188,6 @@ export default function AdminPapersPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Search */}
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -162,7 +198,6 @@ export default function AdminPapersPage() {
               />
             </div>
 
-            {/* Visibility filter */}
             <div className="flex gap-1">
               {VISIBILITY_OPTIONS.map((opt) => (
                 <Button
@@ -170,23 +205,6 @@ export default function AdminPapersPage() {
                   variant={visibility === opt.value ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setVisibility(opt.value)}
-                >
-                  {opt.label}
-                </Button>
-              ))}
-            </div>
-
-            {/* Sort */}
-            <div className="flex gap-1">
-              {SORT_OPTIONS.map((opt) => (
-                <Button
-                  key={opt.value}
-                  variant={sort === opt.value ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setSort(opt.value);
-                    setPage(1);
-                  }}
                 >
                   {opt.label}
                 </Button>
@@ -210,15 +228,22 @@ export default function AdminPapersPage() {
                   <TableHead>제목</TableHead>
                   <TableHead className="w-28">파일명</TableHead>
                   <TableHead className="w-32">연구분야</TableHead>
-                  <TableHead className="w-16 text-center">설문</TableHead>
-                  <TableHead className="w-28 text-right">등록일</TableHead>
+                  <TableHead className="w-16 text-center cursor-pointer select-none" onClick={() => handleSort('reads')}>
+                    <span className="inline-flex items-center">읽기<SortIcon col="reads" /></span>
+                  </TableHead>
+                  <TableHead className="w-16 text-center cursor-pointer select-none" onClick={() => handleSort('surveys')}>
+                    <span className="inline-flex items-center">설문<SortIcon col="surveys" /></span>
+                  </TableHead>
+                  <TableHead className="w-28 text-right cursor-pointer select-none" onClick={() => handleSort('newest')}>
+                    <span className="inline-flex items-center justify-end">등록일<SortIcon col="newest" /></span>
+                  </TableHead>
                   <TableHead className="w-16 text-center">공개</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredPapers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-10">
                       검색 결과가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -228,7 +253,7 @@ export default function AdminPapersPage() {
                     return (
                       <TableRow key={paper.id} className={isHidden ? 'opacity-50' : ''}>
                         <TableCell className="text-center text-muted-foreground text-sm">
-                          {(page - 1) * PAGE_SIZE + idx + 1}
+                          {idx + 1}
                         </TableCell>
                         <TableCell className="font-medium max-w-[320px]">
                           <div className="flex items-center gap-2">
@@ -252,6 +277,7 @@ export default function AdminPapersPage() {
                             <span className="text-muted-foreground text-sm">-</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-center">{paper.read_count}</TableCell>
                         <TableCell className="text-center">{paper.survey_count}</TableCell>
                         <TableCell className="text-right text-sm text-muted-foreground">
                           {formatDate(paper.created_at)}
@@ -280,7 +306,6 @@ export default function AdminPapersPage() {
             </Table>
           )}
 
-          {/* Pagination */}
           {!isLoading && totalPages > 1 && (
             <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t">
               <Button
