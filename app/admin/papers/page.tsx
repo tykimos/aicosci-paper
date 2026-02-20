@@ -208,6 +208,7 @@ export default function AdminPapersPage() {
                 <TableRow>
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead>제목</TableHead>
+                  <TableHead className="w-28">파일명</TableHead>
                   <TableHead className="w-32">연구분야</TableHead>
                   <TableHead className="w-16 text-center">설문</TableHead>
                   <TableHead className="w-28 text-right">등록일</TableHead>
@@ -217,7 +218,7 @@ export default function AdminPapersPage() {
               <TableBody>
                 {filteredPapers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
                       검색 결과가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -238,6 +239,9 @@ export default function AdminPapersPage() {
                               </Badge>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground truncate max-w-[112px]">
+                          {paper.file_url ? paper.file_url.split('/').pop() : '-'}
                         </TableCell>
                         <TableCell>
                           {paper.tags.length > 0 ? (
