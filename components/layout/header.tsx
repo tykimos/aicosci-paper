@@ -49,7 +49,7 @@ export function Header({ stats, badges }: HeaderProps) {
         </Link>
 
         <div className="hidden md:inline-flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">관련 대회 보기</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">관련 대회:</span>
           <a
             href="https://aifactory.space/task/9235/overview"
             target="_blank"
