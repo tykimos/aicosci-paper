@@ -30,6 +30,30 @@ import { hybridSearch } from '@/lib/search/hybrid-search';
 // Maximum chain depth to prevent infinite loops
 const MAX_CHAIN_DEPTH = 3;
 
+// Diverse fallback queries for recommendations (instead of always "인공지능")
+const RECOMMENDATION_QUERIES = [
+  '머신러닝 딥러닝', '자연어처리 NLP', '컴퓨터 비전 이미지',
+  '강화학습 로봇', '생물정보학 바이오', '의료 AI 진단',
+  '기후 환경 예측', '재료과학 물성', '화학 분자 시뮬레이션',
+  '물리학 시뮬레이션', '천문학 우주', '에너지 최적화',
+  '약물 발견 신약', '유전체 분석', '단백질 구조 예측',
+];
+
+/** Pick a random fallback query */
+function getRandomQuery(): string {
+  return RECOMMENDATION_QUERIES[Math.floor(Math.random() * RECOMMENDATION_QUERIES.length)];
+}
+
+/** Fisher-Yates shuffle */
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 /**
  * Perform hybrid search on papers (vector + keyword)
  */
@@ -206,27 +230,32 @@ async function handleChat(request: ChatRequest): Promise<ChatResponse> {
 
     // Perform search if needed - for any skill that requires vector_search
     if (orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
-      // Generate search query from user message or use default
-      const searchQuery = orchestration.query || message || 'AI 과학 연구';
+      const isRecommendation = orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete';
+
+      // For recommendations without specific query, use random diverse query
+      const searchQuery = orchestration.query || message || (isRecommendation ? getRandomQuery() : 'AI 과학 연구');
       console.log(`[Chat] Searching with query: "${searchQuery}"`);
-      searchResults = await searchPapers(searchQuery, 10);
+      searchResults = await searchPapers(searchQuery, isRecommendation ? 20 : 10);
       console.log(`[Chat] Search returned ${searchResults.length} results`);
+
+      // For recommendation skills, fallback with random query if no results
+      if (isRecommendation && searchResults.length === 0) {
+        const fallbackQuery = getRandomQuery();
+        console.log(`[Chat] No results, trying random query "${fallbackQuery}"`);
+        searchResults = await searchPapers(fallbackQuery, 20);
+        console.log(`[Chat] Fallback search returned ${searchResults.length} results`);
+      }
+
+      // Shuffle results for recommendations so different papers get recommended each time
+      if (isRecommendation && searchResults.length > 0) {
+        searchResults = shuffleArray(searchResults);
+        console.log(`[Chat] Shuffled results. First: ${searchResults[0].title}`);
+      }
+
       if (searchResults.length > 0) {
         console.log(`[Chat] First result: ${searchResults[0].title} (ID: ${searchResults[0].paper_id})`);
       }
       additionalContextData.search_results = searchResults;
-
-      // For recommendation skills, ensure we have papers
-      if (
-        (orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete') &&
-        searchResults.length === 0
-      ) {
-        // Try with broader query
-        console.log('[Chat] No results, trying broader query "인공지능"');
-        searchResults = await searchPapers('인공지능', 10);
-        console.log(`[Chat] Broader search returned ${searchResults.length} results`);
-        additionalContextData.search_results = searchResults;
-      }
     }
 
     // Carry forward previous signals and response for chaining
@@ -342,13 +371,20 @@ async function handleStreamingChat(request: ChatRequest): Promise<Response> {
 
   // Perform search if needed - for any skill that requires vector_search
   if (orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
-    const searchQuery = orchestration.query || message || 'AI 과학 연구';
-    let searchResults = await searchPapers(searchQuery, 10);
+    const isRecommendation = orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete';
+    const searchQuery = orchestration.query || message || (isRecommendation ? getRandomQuery() : 'AI 과학 연구');
+    let searchResults = await searchPapers(searchQuery, isRecommendation ? 20 : 10);
 
-    // For recommendation skills, ensure we have papers
+    // Fallback with random query
     if (searchResults.length === 0) {
-      searchResults = await searchPapers('인공지능', 10);
+      searchResults = await searchPapers(getRandomQuery(), 20);
     }
+
+    // Shuffle for recommendation diversity
+    if (isRecommendation && searchResults.length > 0) {
+      searchResults = shuffleArray(searchResults);
+    }
+
     additionalContextData.search_results = searchResults;
   }
 
