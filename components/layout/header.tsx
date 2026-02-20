@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Settings, FileText, ClipboardList, MessageSquare, Award, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,12 +38,15 @@ interface HeaderProps {
 }
 
 export function Header({ stats, badges }: HeaderProps) {
-  const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
 
   const handleAdminClick = () => {
     setIsNavigating(true);
-    router.push('/admin/login');
+    // Use full page navigation (not router.push) because this crosses
+    // layout boundaries (main → admin) and involves middleware redirects.
+    // Soft client-side navigation can hang when the page has heavy state
+    // like PDF rendering or streaming chat.
+    window.location.href = '/admin/login';
   };
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,6 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isNavigatingHome, setIsNavigatingHome] = useState(false);
 
@@ -48,13 +47,14 @@ export default function AdminLayout({
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await fetch('/api/v1/admin/logout', { method: 'POST' });
-    router.push('/admin/login');
-    router.refresh();
+    // Full page navigation to clear admin state cleanly
+    window.location.href = '/admin/login';
   };
 
   const handleGoHome = () => {
     setIsNavigatingHome(true);
-    router.push('/');
+    // Full page navigation — crosses layout boundaries (admin → main)
+    window.location.href = '/';
   };
 
   return (
