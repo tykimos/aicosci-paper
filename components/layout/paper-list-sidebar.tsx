@@ -12,6 +12,7 @@ interface PaperListSidebarProps {
   selectedPaperId: string | null;
   onSelectPaper: (id: string) => void;
   isSurveyCompleted: (paperId: string) => boolean;
+  mobile?: boolean;
 }
 
 const MIN_WIDTH = 280;
@@ -22,6 +23,7 @@ export function PaperListSidebar({
   selectedPaperId,
   onSelectPaper,
   isSurveyCompleted,
+  mobile,
 }: PaperListSidebarProps) {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -140,6 +142,97 @@ export function PaperListSidebar({
   const unviewedCount = papers.filter((p) => !isViewed(p.id)).length;
   const surveyedCount = papers.filter((p) => isSurveyCompleted(p.id)).length;
   const unsurveyedCount = papers.length - surveyedCount;
+
+  if (mobile) {
+    return (
+      <div className="flex flex-col h-full overflow-hidden bg-sidebar">
+        <div className="p-4 space-y-3 flex-shrink-0">
+          {/* 필터 헤더 */}
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span>필터</span>
+          </div>
+
+          {/* 상태 필터 */}
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant={viewFilter === 'all' ? 'secondary' : 'outline'} className="cursor-pointer hover:bg-secondary/80 shrink-0" onClick={() => setViewFilter('all')}>
+              전체 ({papers.length})
+            </Badge>
+            <Badge variant={viewFilter === 'unviewed' ? 'secondary' : 'outline'} className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1" onClick={() => setViewFilter('unviewed')}>
+              <EyeOff className="h-3 w-3" />읽기전 ({unviewedCount})
+            </Badge>
+            <Badge variant={viewFilter === 'viewed' ? 'secondary' : 'outline'} className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1" onClick={() => setViewFilter('viewed')}>
+              <Eye className="h-3 w-3" />읽음 ({viewedCount})
+            </Badge>
+            <Badge variant={viewFilter === 'unsurveyed' ? 'secondary' : 'outline'} className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1" onClick={() => setViewFilter('unsurveyed')}>
+              <ClipboardCheck className="h-3 w-3" />설문전 ({unsurveyedCount})
+            </Badge>
+            <Badge variant={viewFilter === 'surveyed' ? 'secondary' : 'outline'} className="cursor-pointer hover:bg-secondary/80 shrink-0 flex items-center gap-1" onClick={() => setViewFilter('surveyed')}>
+              <ClipboardCheck className="h-3 w-3" />설문완료 ({surveyedCount})
+            </Badge>
+          </div>
+
+          {/* 태그 필터 */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-2 border-t">
+              <Badge variant={selectedTag === null ? 'secondary' : 'outline'} className="cursor-pointer hover:bg-secondary/80 shrink-0 text-xs" onClick={() => setSelectedTag(null)}>
+                전체
+              </Badge>
+              {tags.map((tag) => (
+                <Badge key={tag} variant="outline" className={cn('cursor-pointer shrink-0 max-w-[120px] truncate text-xs border transition-all', selectedTag === tag ? 'bg-primary/10 text-primary border-primary font-medium' : 'text-foreground border-border hover:bg-accent')} onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}>
+                  #{tag}
+                </Badge>
+              ))}
+              <Badge variant="outline" className={cn('cursor-pointer shrink-0 text-xs border transition-all', selectedTag === '__etc__' ? 'bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 font-medium' : 'text-foreground border-border hover:bg-accent')} onClick={() => setSelectedTag(selectedTag === '__etc__' ? null : '__etc__')}>
+                #기타
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <div className="p-4 pt-0 space-y-2 pb-8">
+            {isLoading ? (
+              [...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+            ) : filteredPapers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {viewFilter === 'viewed' && '읽은 연구보고서가 없습니다.'}
+                {viewFilter === 'unviewed' && '모든 연구보고서를 읽었습니다!'}
+                {viewFilter === 'surveyed' && '설문 완료한 연구보고서가 없습니다.'}
+                {viewFilter === 'unsurveyed' && '모든 연구보고서의 설문을 완료했습니다!'}
+                {viewFilter === 'all' && '연구보고서가 없습니다.'}
+              </p>
+            ) : (
+              filteredPapers.map((paper) => {
+                const viewed = isViewed(paper.id);
+                const surveyed = isSurveyCompleted(paper.id);
+                const isSelected = selectedPaperId === paper.id;
+                return (
+                  <div key={paper.id} className={cn('group p-3 cursor-pointer transition-all duration-150 rounded-lg border-2 shadow-sm overflow-hidden', isSelected ? 'bg-primary/10 border-primary shadow-md' : viewed ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700')} onClick={() => onSelectPaper(paper.id)}>
+                    <h3 className={cn('text-sm leading-snug line-clamp-2 break-words', isSelected ? 'font-medium text-foreground' : viewed ? 'text-muted-foreground' : 'text-foreground')}>
+                      {paper.title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                      {paper.tags.slice(0, 3).map((tag) => (
+                        <span key={tag} className={cn('text-[11px] cursor-pointer transition-colors', selectedTag === tag ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground')} onClick={(e) => { e.stopPropagation(); setSelectedTag(tag === selectedTag ? null : tag); }}>
+                          #{tag}
+                        </span>
+                      ))}
+                      <span className="text-[10px] ml-auto flex items-center gap-1">
+                        <span className={viewed ? 'text-blue-500' : 'text-muted-foreground/50'}>{viewed ? '읽음' : '읽기전'}</span>
+                        <span className="text-muted-foreground/30">·</span>
+                        <span className={surveyed ? 'text-green-500' : 'text-muted-foreground/50'}>{surveyed ? '설문완료' : '설문전'}</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <aside

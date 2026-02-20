@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, List, FileText, ClipboardList } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PaperListSidebar } from '@/components/layout/paper-list-sidebar';
 import { PaperViewer } from '@/components/papers/paper-viewer';
@@ -25,6 +25,7 @@ export default function HomePage() {
   const [isResizingChat, setIsResizingChat] = useState(false);
   const [isSurveyCollapsed, setIsSurveyCollapsed] = useState(false);
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'list' | 'viewer' | 'survey'>('list');
   const prevPaperIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
@@ -118,6 +119,11 @@ export default function HomePage() {
     };
   }, [isResizingChat, resizeChat, stopResizingChat]);
 
+  const handleMobilePaperSelect = (id: string) => {
+    setSelectedPaperId(id);
+    setMobileTab('viewer');
+  };
+
   const handleSearchResults = (papers: unknown[]) => {
     console.log('Search results:', papers);
   };
@@ -145,7 +151,74 @@ export default function HomePage() {
           totalBadges: badgeData.totalBadges,
         }}
       />
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* Mobile Layout */}
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden lg:hidden">
+        {/* Mobile Tab Bar */}
+        <div className="flex border-b shrink-0 bg-background">
+          {([
+            { key: 'list' as const, label: '논문목록', icon: List },
+            { key: 'viewer' as const, label: '논문보기', icon: FileText },
+            { key: 'survey' as const, label: '설문', icon: ClipboardList },
+          ]).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setMobileTab(key)}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors',
+                mobileTab === key
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile Content */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {mobileTab === 'list' && (
+            <PaperListSidebar
+              mobile
+              selectedPaperId={selectedPaperId}
+              onSelectPaper={handleMobilePaperSelect}
+              isSurveyCompleted={isSurveyCompleted}
+            />
+          )}
+          {mobileTab === 'viewer' && (
+            <div className="flex flex-col h-full">
+              <main className="flex-1 min-h-0 overflow-hidden">
+                <PaperViewer
+                  paperId={selectedPaperId}
+                  sessionId={sessionId}
+                  isFullscreen={isFullscreen}
+                  onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+                />
+              </main>
+            </div>
+          )}
+          {mobileTab === 'survey' && selectedPaperId && (
+            <SurveySidebar
+              mobile
+              paperId={selectedPaperId}
+              sessionId={sessionId}
+              onPaperSelect={(id) => { setSelectedPaperId(id); setMobileTab('viewer'); }}
+              onSurveyComplete={handleSurveyComplete}
+              isSurveyCompleted={isSurveyCompleted}
+              markSurveyCompleted={markSurveyCompleted}
+            />
+          )}
+          {mobileTab === 'survey' && !selectedPaperId && (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+              논문을 먼저 선택해주세요.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex flex-1 min-h-0 overflow-hidden">
         {/* Left Sidebar - Paper List */}
         {!isFullscreen && (
           <PaperListSidebar
