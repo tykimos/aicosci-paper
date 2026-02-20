@@ -44,6 +44,67 @@ function getRandomQuery(): string {
   return RECOMMENDATION_QUERIES[Math.floor(Math.random() * RECOMMENDATION_QUERIES.length)];
 }
 
+// Common non-searchable words to filter out when extracting context keywords
+const STOP_WORDS = new Set([
+  '논문', '추천', '해줘', '해주세요', '알려줘', '알려주세요', '보여줘',
+  '다른', '다음', '더', '좀', '하나', '뭐', '어떤', '관련', '관한',
+  '있나', '있어', '없나', '없어', '인가', '인지', '볼까', '읽을',
+  '검색', '찾아', '설명', '요약', '자세히', '간단히',
+  '네', '예', '아니', '그래', '좋아', '감사', '고마워',
+  '안녕', '반가워', '처음', '시작', '홈', '으로',
+  '에', '의', '을', '를', '이', '가', '은', '는', '도', '와', '과',
+  '로', '으로', '에서', '까지', '부터', '만', '보다',
+]);
+
+/**
+ * Extract meaningful search query from conversation context.
+ * Returns null if no useful context found (caller should use random fallback).
+ */
+function extractContextQuery(
+  message: string | undefined,
+  history: ConversationMessage[],
+  paperTitle?: string | null,
+  paperTags?: string[],
+): string | null {
+  // 1. If there's a currently viewed paper, use its title as search context
+  if (paperTitle) {
+    // Remove common prefixes/noise and use as related-paper search
+    return paperTitle;
+  }
+
+  // 2. Extract substantive keywords from recent user messages in history
+  const userMessages = history
+    .filter(m => m.role === 'user')
+    .map(m => m.content)
+    .slice(-5); // last 5 user messages
+
+  // Include current message if it has substance
+  if (message) userMessages.push(message);
+
+  // Gather all words, filter stop words, keep meaningful terms
+  const allWords: string[] = [];
+  for (const msg of userMessages) {
+    const words = msg
+      .replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length >= 2 && !STOP_WORDS.has(w));
+    allWords.push(...words);
+  }
+
+  // If we have paper tags from context, include them
+  if (paperTags?.length) {
+    allWords.push(...paperTags);
+  }
+
+  // Deduplicate and take top keywords
+  const unique = [...new Set(allWords)];
+  if (unique.length === 0) return null;
+
+  // Take up to 5 keywords for search
+  const keywords = unique.slice(-5).join(' ');
+  return keywords || null;
+}
+
 /** Fisher-Yates shuffle */
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -232,24 +293,38 @@ async function handleChat(request: ChatRequest): Promise<ChatResponse> {
     if (orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
       const isRecommendation = orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete';
 
-      // For recommendations without specific query, use random diverse query
-      const searchQuery = orchestration.query || message || (isRecommendation ? getRandomQuery() : 'AI 과학 연구');
-      console.log(`[Chat] Searching with query: "${searchQuery}"`);
+      // Build search query: orchestrator query > context-aware extraction > random fallback
+      let searchQuery = orchestration.query;
+      if (!searchQuery || isRecommendation) {
+        const paperDetails = additionalContextData.paper;
+        const contextQuery = extractContextQuery(
+          message,
+          history,
+          paperDetails?.title || null,
+          paperDetails?.tags,
+        );
+        if (contextQuery) {
+          searchQuery = contextQuery;
+          console.log(`[Chat] Using context-aware query: "${searchQuery}"`);
+        } else {
+          searchQuery = isRecommendation ? getRandomQuery() : (message || 'AI 과학 연구');
+          console.log(`[Chat] Using ${isRecommendation ? 'random' : 'default'} query: "${searchQuery}"`);
+        }
+      }
+
       searchResults = await searchPapers(searchQuery, isRecommendation ? 20 : 10);
       console.log(`[Chat] Search returned ${searchResults.length} results`);
 
-      // For recommendation skills, fallback with random query if no results
+      // Fallback with random query if no results
       if (isRecommendation && searchResults.length === 0) {
         const fallbackQuery = getRandomQuery();
         console.log(`[Chat] No results, trying random query "${fallbackQuery}"`);
         searchResults = await searchPapers(fallbackQuery, 20);
-        console.log(`[Chat] Fallback search returned ${searchResults.length} results`);
       }
 
       // Shuffle results for recommendations so different papers get recommended each time
       if (isRecommendation && searchResults.length > 0) {
         searchResults = shuffleArray(searchResults);
-        console.log(`[Chat] Shuffled results. First: ${searchResults[0].title}`);
       }
 
       if (searchResults.length > 0) {
@@ -372,7 +447,20 @@ async function handleStreamingChat(request: ChatRequest): Promise<Response> {
   // Perform search if needed - for any skill that requires vector_search
   if (orchestration.requires.some((r) => ['vector_search', 'keyword_search'].includes(r))) {
     const isRecommendation = orchestration.skill_id === 'recommend_next' || orchestration.skill_id === 'survey_complete';
-    const searchQuery = orchestration.query || message || (isRecommendation ? getRandomQuery() : 'AI 과학 연구');
+
+    // Build search query: orchestrator query > context-aware extraction > random fallback
+    let searchQuery = orchestration.query;
+    if (!searchQuery || isRecommendation) {
+      const paperDetails = additionalContextData.paper;
+      const contextQuery = extractContextQuery(
+        message,
+        history,
+        paperDetails?.title || null,
+        paperDetails?.tags,
+      );
+      searchQuery = contextQuery || (isRecommendation ? getRandomQuery() : (message || 'AI 과학 연구'));
+    }
+
     let searchResults = await searchPapers(searchQuery, isRecommendation ? 20 : 10);
 
     // Fallback with random query
