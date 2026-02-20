@@ -48,18 +48,6 @@ export function Header({ stats, badges }: HeaderProps) {
           </span>
         </Link>
 
-        <div className="hidden md:inline-flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">관련 대회:</span>
-          <a
-            href="https://aifactory.space/task/9235/overview"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r from-emerald-600 via-blue-500 to-purple-500 hover:from-emerald-500 hover:via-blue-400 hover:to-purple-400 transition-all shadow-sm truncate max-w-[480px]"
-          >
-            [Track 1] 2026 AI Co-Scientist Challenge Korea (AI 연구동료 경진대회)
-          </a>
-        </div>
-
         {/* Spacer */}
         <div className="flex-1" />
 
@@ -222,6 +210,19 @@ export function Header({ stats, badges }: HeaderProps) {
             <span className="sr-only">관리자</span>
           </Link>
         </Button>
+      </div>
+
+      {/* 2nd row: Challenge link */}
+      <div className="flex items-center justify-center gap-2 px-4 py-1.5 border-t bg-muted/30">
+        <span className="text-xs text-muted-foreground whitespace-nowrap">관련 대회:</span>
+        <a
+          href="https://aifactory.space/task/9235/overview"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r from-emerald-600 via-blue-500 to-purple-500 hover:from-emerald-500 hover:via-blue-400 hover:to-purple-400 transition-all shadow-sm truncate"
+        >
+          [Track 1] 2026 AI Co-Scientist Challenge Korea (AI 연구동료 경진대회)
+        </a>
       </div>
 
       {/* New Badge Notification */}
