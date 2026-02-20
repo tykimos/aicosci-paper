@@ -96,6 +96,23 @@ export function ChatInterface({
     }
   }, [surveyCompleteCount, lastSurveyCount, isStreaming, messages.length]);
 
+  // Save messages to DB
+  const saveMessages = async (msgs: { role: string; content: string }[], currentPaperId?: string | null) => {
+    try {
+      await fetch('/api/v1/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          paper_id: currentPaperId || null,
+          messages: msgs,
+        }),
+      });
+    } catch (e) {
+      console.error('Failed to save chat messages:', e);
+    }
+  };
+
   // Site enter hook - trigger greeting on first visit
   useEffect(() => {
     if (sessionId && !hasGreeted && messages.length === 0) {
@@ -167,6 +184,11 @@ export function ChatInterface({
           // Mark streaming complete
           assistantMessage.isStreaming = false;
           setMessages([{ ...assistantMessage }]);
+
+          // Save greeting to DB
+          if (assistantMessage.content) {
+            saveMessages([{ role: 'assistant', content: assistantMessage.content }]);
+          }
         } catch (error) {
           console.error('Greeting error:', error);
         } finally {
@@ -294,6 +316,17 @@ export function ChatInterface({
       // Mark streaming complete
       assistantMessage.isStreaming = false;
       setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
+
+      // Save user + assistant messages to DB
+      if (assistantMessage.content) {
+        saveMessages(
+          [
+            { role: 'user', content: messageText },
+            { role: 'assistant', content: assistantMessage.content },
+          ],
+          paperId
+        );
+      }
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: Message = {
