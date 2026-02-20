@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -50,9 +51,7 @@ export default function AdminLayout({
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center px-4 gap-4">
           <Link href="/admin" className="flex items-center gap-2 shrink-0">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-700 via-emerald-600 to-blue-500 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">AI</span>
-            </div>
+            <Image src="/logo.png" alt="AI-CO-SCI" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
             <span className="font-bold text-lg hidden sm:inline">
               관리자
             </span>

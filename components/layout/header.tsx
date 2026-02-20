@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { Settings, FileText, ClipboardList, MessageSquare, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,9 +42,7 @@ export function Header({ stats, badges }: HeaderProps) {
       <div className="flex h-14 items-center px-4 gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-700 via-emerald-600 to-blue-500 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">AI</span>
-          </div>
+          <Image src="/logo.png" alt="AI-CO-SCI" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
           <span className="font-bold text-xl hidden sm:inline">
             AI-CO-SCI
           </span>

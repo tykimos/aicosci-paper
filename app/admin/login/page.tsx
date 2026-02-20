@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -46,9 +46,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-gradient-to-br from-emerald-700 via-emerald-600 to-blue-500 flex items-center justify-center">
-            <Lock className="h-6 w-6 text-white" />
-          </div>
+          <Image src="/logo.png" alt="AI-CO-SCI" width={48} height={48} className="mx-auto mb-4 h-12 w-12 rounded-full object-cover" />
           <CardTitle className="text-2xl">관리자 로그인</CardTitle>
           <CardDescription>
             AI-CO-SCI 관리자 페이지
