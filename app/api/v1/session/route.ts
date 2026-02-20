@@ -4,11 +4,32 @@ import {
   successResponse,
   internalErrorResponse,
 } from '@/lib/api/response';
+import { parseUserAgent } from '@/lib/utils/user-agent';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { fingerprint, session_id } = body;
+    const { fingerprint, session_id, referrer, screen_width, screen_height, language } = body;
+
+    // Server-side info
+    const ip_address =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      null;
+    const raw_ua = request.headers.get('user-agent') || '';
+    const parsed = parseUserAgent(raw_ua);
+
+    const metadata = {
+      ip_address,
+      user_agent: raw_ua || null,
+      device_type: parsed.device_type,
+      browser: parsed.browser,
+      os: parsed.os,
+      referrer: referrer || null,
+      screen_width: screen_width || null,
+      screen_height: screen_height || null,
+      language: language || null,
+    };
 
     const supabase = await createClient();
 
@@ -21,11 +42,14 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (existingSession) {
-        // Update last_active_at
+        // Update last_active_at + metadata
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabase as any)
           .from('anonymous_sessions')
-          .update({ last_active_at: new Date().toISOString() })
+          .update({
+            last_active_at: new Date().toISOString(),
+            ...metadata,
+          })
           .eq('id', session_id);
 
         return successResponse({ session_id });
@@ -38,6 +62,7 @@ export async function POST(request: NextRequest) {
       .from('anonymous_sessions')
       .insert({
         fingerprint: fingerprint || null,
+        ...metadata,
       })
       .select('id')
       .single();

@@ -15,6 +15,10 @@ export function useSession() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: existingSessionId,
+          referrer: document.referrer || null,
+          screen_width: window.screen?.width || null,
+          screen_height: window.screen?.height || null,
+          language: navigator.language || null,
         }),
       });
 

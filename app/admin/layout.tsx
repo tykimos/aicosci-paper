@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   FileText,
   ClipboardList,
+  Users,
   Download,
   Settings,
   LogOut,
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/admin', label: '대시보드', icon: LayoutDashboard },
   { href: '/admin/papers', label: '논문 관리', icon: FileText },
   { href: '/admin/surveys', label: '설문 결과', icon: ClipboardList },
+  { href: '/admin/users', label: '참여자', icon: Users },
   { href: '/admin/export', label: '데이터 다운로드', icon: Download },
   { href: '/admin/settings', label: '설정', icon: Settings },
 ];
