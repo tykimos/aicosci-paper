@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, List, FileText, ClipboardList } from 'lucide-react';
 import { Header } from '@/components/layout/header';
@@ -18,19 +19,50 @@ const MAX_CHAT_HEIGHT = 500;
 const DEFAULT_CHAT_HEIGHT = 280;
 
 export default function HomePage() {
-  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const initialPaperId = searchParams.get('paper');
+  const [selectedPaperId, setSelectedPaperIdRaw] = useState<string | null>(initialPaperId);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [chatHeight, setChatHeight] = useState(DEFAULT_CHAT_HEIGHT);
   const [isResizingChat, setIsResizingChat] = useState(false);
   const [isSurveyCollapsed, setIsSurveyCollapsed] = useState(false);
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
-  const [mobileTab, setMobileTab] = useState<'list' | 'viewer' | 'survey'>('list');
+  const [mobileTab, setMobileTab] = useState<'list' | 'viewer' | 'survey'>(initialPaperId ? 'viewer' : 'list');
   // Unique chat session ID per page load (separate from persistent anonymous session)
   const chatSessionId = useMemo(() => uuidv4(), []);
   const prevPaperIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
+  const isPopstateRef = useRef(false);
+
+  // Sync paper selection with URL query param (?paper=<id>)
+  const setSelectedPaperId = useCallback((id: string | null) => {
+    setSelectedPaperIdRaw(id);
+    if (isPopstateRef.current) {
+      isPopstateRef.current = false;
+      return;
+    }
+    const url = new URL(window.location.href);
+    if (id) {
+      url.searchParams.set('paper', id);
+    } else {
+      url.searchParams.delete('paper');
+    }
+    window.history.pushState({}, '', url.toString());
+  }, []);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopstate = () => {
+      const params = new URLSearchParams(window.location.search);
+      const paperId = params.get('paper');
+      isPopstateRef.current = true;
+      setSelectedPaperIdRaw(paperId);
+    };
+    window.addEventListener('popstate', handlePopstate);
+    return () => window.removeEventListener('popstate', handlePopstate);
+  }, []);
 
   // Statistics
   const stats = useStatistics();
