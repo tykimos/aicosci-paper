@@ -128,8 +128,8 @@ async function searchPapers(
     // Use hybrid search which combines vector and keyword search
     const results = await hybridSearch(query, {
       topK,
-      threshold: 0.3, // Lower threshold for more results
-      vectorWeight: 0.7,  // Prefer semantic similarity
+      threshold: 0.15, // Low threshold to return more results
+      vectorWeight: 0.7,
       keywordWeight: 0.3,
     });
 
@@ -177,6 +177,42 @@ async function searchPapers(
       console.error('[Chat] Fallback search failed:', fallbackError);
       return [];
     }
+  }
+}
+
+/**
+ * Final fallback: fetch random papers directly from DB (no search needed)
+ * Guarantees we always have papers to recommend
+ */
+async function fetchRandomPapers(count: number = 10): Promise<SearchResult[]> {
+  try {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from('papers')
+      .select('id, title, authors, abstract, tags')
+      .is('deleted_at', null)
+      .is('hidden_at', null)
+      .limit(200);
+
+    if (error || !data || data.length === 0) {
+      console.error('[Chat] fetchRandomPapers error:', error?.message);
+      return [];
+    }
+
+    // Shuffle and take `count` papers
+    const shuffled = shuffleArray(data as Pick<Paper, 'id' | 'title' | 'authors' | 'abstract' | 'tags'>[]);
+    return shuffled.slice(0, count).map((paper, index) => ({
+      paper_id: paper.id,
+      title: paper.title,
+      authors: paper.authors || [],
+      score: 0.5 - index * 0.01,
+      snippet: paper.abstract?.slice(0, 200),
+      tags: paper.tags || [],
+    }));
+  } catch (error) {
+    console.error('[Chat] fetchRandomPapers failed:', error);
+    return [];
   }
 }
 
@@ -315,11 +351,17 @@ async function handleChat(request: ChatRequest): Promise<ChatResponse> {
       searchResults = await searchPapers(searchQuery, isRecommendation ? 20 : 10);
       console.log(`[Chat] Search returned ${searchResults.length} results`);
 
-      // Fallback with random query if no results
-      if (isRecommendation && searchResults.length === 0) {
+      // Fallback 1: try random topic query
+      if (searchResults.length === 0) {
         const fallbackQuery = getRandomQuery();
         console.log(`[Chat] No results, trying random query "${fallbackQuery}"`);
         searchResults = await searchPapers(fallbackQuery, 20);
+      }
+
+      // Fallback 2: fetch random papers directly from DB (guarantees results)
+      if (searchResults.length === 0) {
+        console.log('[Chat] All searches empty, fetching random papers from DB');
+        searchResults = await fetchRandomPapers(10);
       }
 
       // Shuffle results for recommendations so different papers get recommended each time
@@ -463,9 +505,15 @@ async function handleStreamingChat(request: ChatRequest): Promise<Response> {
 
     let searchResults = await searchPapers(searchQuery, isRecommendation ? 20 : 10);
 
-    // Fallback with random query
+    // Fallback 1: try random topic query
     if (searchResults.length === 0) {
       searchResults = await searchPapers(getRandomQuery(), 20);
+    }
+
+    // Fallback 2: fetch random papers directly from DB (guarantees results)
+    if (searchResults.length === 0) {
+      console.log('[Chat] All searches empty, fetching random papers from DB');
+      searchResults = await fetchRandomPapers(10);
     }
 
     // Shuffle for recommendation diversity
