@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -16,6 +17,7 @@ import {
   Settings,
   LogOut,
   Home,
+  Loader2,
 } from 'lucide-react';
 
 const navItems = [
@@ -35,6 +37,8 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isNavigatingHome, setIsNavigatingHome] = useState(false);
 
   // Don't show layout on login page
   if (pathname === '/admin/login') {
@@ -42,9 +46,15 @@ export default function AdminLayout({
   }
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await fetch('/api/v1/admin/logout', { method: 'POST' });
     router.push('/admin/login');
     router.refresh();
+  };
+
+  const handleGoHome = () => {
+    setIsNavigatingHome(true);
+    router.push('/');
   };
 
   return (
@@ -59,14 +69,20 @@ export default function AdminLayout({
             </span>
           </Link>
           <div className="flex-1" />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
+          <Button variant="ghost" size="sm" onClick={handleGoHome} disabled={isNavigatingHome}>
+            {isNavigatingHome ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
               <Home className="h-4 w-4 mr-2" />
-              메인으로
-            </Link>
+            )}
+            메인으로
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
+          <Button variant="ghost" size="sm" onClick={handleLogout} disabled={isLoggingOut}>
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4 mr-2" />
+            )}
             로그아웃
           </Button>
         </div>

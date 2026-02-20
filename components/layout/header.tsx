@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Settings, FileText, ClipboardList, MessageSquare, Award } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Settings, FileText, ClipboardList, MessageSquare, Award, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -37,6 +39,14 @@ interface HeaderProps {
 }
 
 export function Header({ stats, badges }: HeaderProps) {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleAdminClick = () => {
+    setIsNavigating(true);
+    router.push('/admin/login');
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-4 gap-4">
@@ -217,11 +227,18 @@ export function Header({ stats, badges }: HeaderProps) {
         <div className="flex-1" />
 
         {/* Admin Link */}
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/login">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleAdminClick}
+          disabled={isNavigating}
+        >
+          {isNavigating ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
             <Settings className="h-5 w-5" />
-            <span className="sr-only">관리자</span>
-          </Link>
+          )}
+          <span className="sr-only">관리자</span>
         </Button>
       </div>
 
