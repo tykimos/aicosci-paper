@@ -48,6 +48,15 @@ export function Header({ stats, badges }: HeaderProps) {
           </span>
         </Link>
 
+        <a
+          href="https://aifactory.space/task/9235/overview"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden md:inline-flex items-center px-3 py-1 rounded-full border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors truncate max-w-[480px]"
+        >
+          [Track 1] 2026 AI Co-Scientist Challenge Korea (AI 연구동료 경진대회)
+        </a>
+
         {/* Spacer */}
         <div className="flex-1" />
 
