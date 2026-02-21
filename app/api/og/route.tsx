@@ -1,8 +1,15 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 export const runtime = 'nodejs';
+
+// Read and cache logo as base64 data URL
+const logoDataUrl = readFile(join(process.cwd(), 'public', 'logo.png')).then(
+  (buf) => `data:image/png;base64,${buf.toString('base64')}`
+);
 
 // Fetch and cache the Noto Sans KR font for Korean text
 const notoSansKR = fetch(
@@ -16,7 +23,7 @@ const notoSansKRBold = fetch(
 export async function GET(request: NextRequest) {
   const paperId = request.nextUrl.searchParams.get('paper');
 
-  const [fontRegular, fontBold] = await Promise.all([notoSansKR, notoSansKRBold]);
+  const [fontRegular, fontBold, logo] = await Promise.all([notoSansKR, notoSansKRBold, logoDataUrl]);
 
   // Default OG image (no paper specified)
   if (!paperId) {
@@ -34,7 +41,8 @@ export async function GET(request: NextRequest) {
             fontFamily: '"Noto Sans KR"',
           }}
         >
-          <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a' }}>
+          <img src={logo} width={80} height={80} style={{ borderRadius: 16 }} />
+          <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a', marginTop: 24 }}>
             AI-CO-SCI
           </div>
           <div style={{ fontSize: 28, color: '#64748b', marginTop: 16 }}>
@@ -84,7 +92,8 @@ export async function GET(request: NextRequest) {
             fontFamily: '"Noto Sans KR"',
           }}
         >
-          <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a' }}>
+          <img src={logo} width={80} height={80} style={{ borderRadius: 16 }} />
+          <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a', marginTop: 24 }}>
             AI-CO-SCI
           </div>
           <div style={{ fontSize: 28, color: '#64748b', marginTop: 16 }}>
@@ -108,7 +117,7 @@ export async function GET(request: NextRequest) {
   const tags = (paper.tags || []).slice(0, 4);
   const surveyCount = paper.survey_count || 0;
   const surveyText = surveyCount > 0 ? `설문 ${surveyCount}명 참여` : '';
-  const titleFontSize = title.length > 60 ? 36 : 44;
+  const titleFontSize = title.length > 80 ? 40 : title.length > 50 ? 48 : 56;
 
   return new ImageResponse(
     (
@@ -125,22 +134,7 @@ export async function GET(request: NextRequest) {
       >
         {/* Header: Logo + Brand */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: 20,
-              fontWeight: 700,
-            }}
-          >
-            AI
-          </div>
+          <img src={logo} width={48} height={48} style={{ borderRadius: 12 }} />
           <div style={{ fontSize: 24, fontWeight: 700, color: '#334155', marginLeft: 16 }}>
             AI-CO-SCI
           </div>
