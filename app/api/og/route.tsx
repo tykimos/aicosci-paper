@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
   type PaperOG = { title: string; tags: string[]; survey_count: number; authors: string[] };
   let paper: PaperOG | null = null;
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data } = await supabase
       .from('papers')
       .select('title, tags, survey_count, authors')
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
               </div>
             )}
             <div style={{ fontSize: 16, color: '#94a3b8', fontWeight: 500 }}>
-              aicosci.vercel.app
+              aicosci.aifactory.space
             </div>
           </div>
         </div>
