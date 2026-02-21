@@ -13,8 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AI-CO-SCI',
-  description: '',
+  title: 'AI-CO-SCI | AI 연구보고서 리뷰 플랫폼',
+  description: 'AI가 작성한 연구보고서를 읽고 평가해주세요. 여러분의 리뷰가 AI 과학 연구 발전에 기여합니다.',
+  openGraph: {
+    siteName: 'AI-CO-SCI',
+    type: 'website',
+    images: [{ url: '/logo.png', width: 512, height: 512 }],
+  },
 };
 
 export default function RootLayout({
