@@ -6,11 +6,11 @@ export const runtime = 'nodejs';
 
 // Fetch and cache the Noto Sans KR font for Korean text
 const notoSansKR = fetch(
-  'https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLGC5nwmHfwOWgg.ttf'
+  'https://fonts.gstatic.com/s/notosanskr/v39/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLQ.ttf'
 ).then((res) => res.arrayBuffer());
 
 const notoSansKRBold = fetch(
-  'https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq4HwmHfwOWgg.ttf'
+  'https://fonts.gstatic.com/s/notosanskr/v39/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzg01eLQ.ttf'
 ).then((res) => res.arrayBuffer());
 
 export async function GET(request: NextRequest) {
@@ -107,6 +107,8 @@ export async function GET(request: NextRequest) {
   const title = paper.title.length > 120 ? paper.title.slice(0, 117) + '...' : paper.title;
   const tags = (paper.tags || []).slice(0, 4);
   const surveyCount = paper.survey_count || 0;
+  const surveyText = surveyCount > 0 ? `설문 ${surveyCount}명 참여` : '';
+  const titleFontSize = title.length > 60 ? 36 : 44;
 
   return new ImageResponse(
     (
@@ -122,7 +124,7 @@ export async function GET(request: NextRequest) {
         }}
       >
         {/* Header: Logo + Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <div
             style={{
               width: 48,
@@ -139,14 +141,14 @@ export async function GET(request: NextRequest) {
           >
             AI
           </div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#334155' }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#334155', marginLeft: 16 }}>
             AI-CO-SCI
           </div>
           <div
             style={{
               fontSize: 14,
               color: '#94a3b8',
-              marginLeft: 8,
+              marginLeft: 16,
               padding: '4px 12px',
               border: '1px solid #e2e8f0',
               borderRadius: 12,
@@ -179,12 +181,11 @@ export async function GET(request: NextRequest) {
         >
           <div
             style={{
-              fontSize: title.length > 60 ? 36 : 44,
+              fontSize: titleFontSize,
               fontWeight: 700,
               color: '#0f172a',
               lineHeight: 1.3,
               textAlign: 'center',
-              wordBreak: 'break-word',
             }}
           >
             {title}
@@ -210,8 +211,8 @@ export async function GET(request: NextRequest) {
           }}
         >
           {/* Tags */}
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {tags.map((tag: string) => (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {tags.map((tag: string, i: number) => (
               <div
                 key={tag}
                 style={{
@@ -221,19 +222,19 @@ export async function GET(request: NextRequest) {
                   padding: '6px 16px',
                   borderRadius: 16,
                   fontWeight: 500,
+                  marginLeft: i > 0 ? 8 : 0,
                 }}
               >
-                #{tag}
+                {`#${tag}`}
               </div>
             ))}
           </div>
 
           {/* Stats + URL */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            {surveyCount > 0 && (
-              <div style={{ fontSize: 16, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 18 }}>📊</span>
-                설문 {surveyCount}명 참여
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {surveyText !== '' && (
+              <div style={{ fontSize: 16, color: '#64748b', marginRight: 24 }}>
+                {surveyText}
               </div>
             )}
             <div style={{ fontSize: 16, color: '#94a3b8', fontWeight: 500 }}>
