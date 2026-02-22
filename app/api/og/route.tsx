@@ -34,19 +34,31 @@ export async function GET(request: NextRequest) {
             width: '100%',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            background: 'linear-gradient(135deg, #c7d2fe 0%, #e0e7ff 25%, #f1f5f9 50%, #e0e7ff 75%, #c7d2fe 100%)',
             fontFamily: '"Noto Sans KR"',
           }}
         >
-          <img src={logo} width={80} height={80} style={{ borderRadius: 16 }} />
-          <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a', marginTop: 24 }}>
-            AI-CO-SCI
-          </div>
-          <div style={{ fontSize: 28, color: '#64748b', marginTop: 16 }}>
-            AI 연구보고서 리뷰 플랫폼
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 24,
+              padding: '48px 64px',
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+            }}
+          >
+            <img src={logo} width={80} height={80} style={{ borderRadius: 16 }} />
+            <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a', marginTop: 24 }}>
+              AI-CO-SCI
+            </div>
+            <div style={{ fontSize: 28, color: '#64748b', marginTop: 16 }}>
+              AI 연구보고서 리뷰 플랫폼
+            </div>
           </div>
         </div>
       ),
@@ -85,19 +97,31 @@ export async function GET(request: NextRequest) {
             width: '100%',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            background: 'linear-gradient(135deg, #c7d2fe 0%, #e0e7ff 25%, #f1f5f9 50%, #e0e7ff 75%, #c7d2fe 100%)',
             fontFamily: '"Noto Sans KR"',
           }}
         >
-          <img src={logo} width={80} height={80} style={{ borderRadius: 16 }} />
-          <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a', marginTop: 24 }}>
-            AI-CO-SCI
-          </div>
-          <div style={{ fontSize: 28, color: '#64748b', marginTop: 16 }}>
-            연구보고서를 찾을 수 없습니다
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 24,
+              padding: '48px 64px',
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+            }}
+          >
+            <img src={logo} width={80} height={80} style={{ borderRadius: 16 }} />
+            <div style={{ fontSize: 64, fontWeight: 700, color: '#0f172a', marginTop: 24 }}>
+              AI-CO-SCI
+            </div>
+            <div style={{ fontSize: 28, color: '#64748b', marginTop: 16 }}>
+              연구보고서를 찾을 수 없습니다
+            </div>
           </div>
         </div>
       ),
@@ -126,113 +150,109 @@ export async function GET(request: NextRequest) {
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           fontFamily: '"Noto Sans KR"',
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          padding: '48px 64px',
+          background: 'linear-gradient(135deg, #c7d2fe 0%, #e0e7ff 25%, #f1f5f9 50%, #e0e7ff 75%, #c7d2fe 100%)',
+          padding: '32px',
         }}
       >
-        {/* Header: Logo + Brand */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img src={logo} width={48} height={48} style={{ borderRadius: 12 }} />
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#334155', marginLeft: 16 }}>
-            AI-CO-SCI
-          </div>
-          <div
-            style={{
-              fontSize: 14,
-              color: '#94a3b8',
-              marginLeft: 16,
-              padding: '4px 12px',
-              border: '1px solid #e2e8f0',
-              borderRadius: 12,
-            }}
-          >
-            연구보고서 리뷰
-          </div>
-        </div>
-
-        {/* Thick divider */}
+        {/* Card */}
         <div
           style={{
             width: '100%',
-            height: 4,
-            background: '#0f172a',
-            marginTop: 32,
-            borderRadius: 2,
-          }}
-        />
-
-        {/* Title */}
-        <div
-          style={{
-            flex: 1,
+            height: '100%',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 24px',
+            flexDirection: 'column',
+            background: 'rgba(255, 255, 255, 0.85)',
+            borderRadius: 24,
+            padding: '40px 56px',
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
           }}
         >
+          {/* Header: Logo + Brand */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img src={logo} width={48} height={48} style={{ borderRadius: 12 }} />
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#334155', marginLeft: 16 }}>
+              AI-CO-SCI
+            </div>
+            <div
+              style={{
+                fontSize: 14,
+                color: '#6366f1',
+                marginLeft: 16,
+                padding: '4px 12px',
+                background: '#eef2ff',
+                borderRadius: 12,
+              }}
+            >
+              연구보고서 리뷰
+            </div>
+          </div>
+
+          {/* Title */}
           <div
             style={{
-              fontSize: titleFontSize,
-              fontWeight: 700,
-              color: '#0f172a',
-              lineHeight: 1.3,
-              textAlign: 'center',
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 16px',
             }}
           >
-            {title}
-          </div>
-        </div>
-
-        {/* Thin divider */}
-        <div
-          style={{
-            width: '100%',
-            height: 1,
-            background: '#cbd5e1',
-            marginBottom: 24,
-          }}
-        />
-
-        {/* Bottom: Tags + Stats */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          {/* Tags */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {tags.map((tag: string, i: number) => (
-              <div
-                key={tag}
-                style={{
-                  fontSize: 16,
-                  color: '#6366f1',
-                  background: '#eef2ff',
-                  padding: '6px 16px',
-                  borderRadius: 16,
-                  fontWeight: 500,
-                  marginLeft: i > 0 ? 8 : 0,
-                }}
-              >
-                {`#${tag}`}
-              </div>
-            ))}
+            <div
+              style={{
+                fontSize: titleFontSize,
+                fontWeight: 700,
+                color: '#0f172a',
+                lineHeight: 1.3,
+                textAlign: 'center',
+              }}
+            >
+              {title}
+            </div>
           </div>
 
-          {/* Stats + URL */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {surveyText !== '' && (
-              <div style={{ fontSize: 16, color: '#64748b', marginRight: 24 }}>
-                {surveyText}
+          {/* Bottom: Tags + Stats */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderTop: '1px solid #e2e8f0',
+              paddingTop: 20,
+            }}
+          >
+            {/* Tags */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {tags.map((tag: string, i: number) => (
+                <div
+                  key={tag}
+                  style={{
+                    fontSize: 16,
+                    color: '#6366f1',
+                    background: '#eef2ff',
+                    padding: '6px 16px',
+                    borderRadius: 16,
+                    fontWeight: 500,
+                    marginLeft: i > 0 ? 8 : 0,
+                  }}
+                >
+                  {`#${tag}`}
+                </div>
+              ))}
+            </div>
+
+            {/* Stats + URL */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {surveyText !== '' && (
+                <div style={{ fontSize: 16, color: '#64748b', marginRight: 24 }}>
+                  {surveyText}
+                </div>
+              )}
+              <div style={{ fontSize: 16, color: '#94a3b8', fontWeight: 500 }}>
+                aicosci.aifactory.space
               </div>
-            )}
-            <div style={{ fontSize: 16, color: '#94a3b8', fontWeight: 500 }}>
-              aicosci.aifactory.space
             </div>
           </div>
         </div>
