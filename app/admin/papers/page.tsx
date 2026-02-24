@@ -84,7 +84,7 @@ export default function AdminPapersPage() {
         }));
 
         setPapers(withStats);
-        setTotal(papersData.data.total || 0);
+        setTotal(papersData.meta?.total ?? papersData.data.total ?? 0);
       }
     } catch (error) {
       console.error('Error fetching papers:', error);

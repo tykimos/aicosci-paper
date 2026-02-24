@@ -9,12 +9,18 @@ export async function GET() {
 
     const supabase = createAdminClient();
 
+    // Get total count separately (not limited)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count: totalCount } = await (supabase as any)
+      .from('anonymous_sessions')
+      .select('*', { count: 'exact', head: true });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: sessions, error } = await (supabase as any)
       .from('anonymous_sessions')
       .select('id, ip_address, device_type, browser, os, referrer, screen_width, screen_height, language, created_at, last_active_at')
       .order('last_active_at', { ascending: false })
-      .limit(500);
+      .limit(1000);
 
     if (error) throw error;
 
@@ -47,7 +53,7 @@ export async function GET() {
     }
 
     return successResponse({
-      total: rows.length,
+      total: totalCount || rows.length,
       distributions: {
         device: deviceDist,
         browser: browserDist,

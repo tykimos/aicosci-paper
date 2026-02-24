@@ -115,25 +115,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return errorResponse('INTERNAL_ERROR', `설문 저장 실패: ${dbMsg}`, 500);
     }
 
-    // Increment survey_count on papers table
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: currentPaper } = await supabase
+    // survey_count is automatically incremented by DB trigger (surveys_update_count)
+    // Fetch the updated count after trigger execution
+    const { data: updatedPaper } = await supabase
       .from('papers')
       .select('survey_count')
       .eq('id', paperId)
       .single() as { data: { survey_count: number } | null };
 
-    const newCount = (currentPaper?.survey_count || 0) + 1;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any)
-      .from('papers')
-      .update({ survey_count: newCount })
-      .eq('id', paperId);
-
     return successResponse(
       {
         message: 'Survey submitted successfully',
-        survey_count: newCount,
+        survey_count: updatedPaper?.survey_count || 0,
       },
       undefined,
       201

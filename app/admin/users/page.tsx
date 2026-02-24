@@ -47,10 +47,25 @@ interface UserStats {
 
 const PIE_COLORS = ['#6366f1', '#22c55e', '#f97316', '#a855f7', '#06b6d4', '#eab308', '#ec4899', '#14b8a6'];
 
+const RADIAN = Math.PI / 180;
+
 function distToArray(dist: Record<string, number>) {
   return Object.entries(dist)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderPieLabel({ cx, cy, midAngle, outerRadius, name, percent }: any) {
+  if (percent < 0.05) return null;
+  const radius = outerRadius + 20;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11} fill="#666">
+      {name} {(percent * 100).toFixed(0)}%
+    </text>
+  );
 }
 
 function formatDate(iso: string | null) {
@@ -100,17 +115,17 @@ export default function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Skeleton className="h-[200px] w-full" />
+              <Skeleton className="h-[260px] w-full" />
             ) : deviceData.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">데이터 없음</div>
+              <div className="h-[260px] flex items-center justify-center text-muted-foreground text-sm">데이터 없음</div>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                  <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={65}
+                    label={renderPieLabel} labelLine={false}>
                     {deviceData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value: number, name: string) => [`${value}명`, name]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -125,17 +140,17 @@ export default function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Skeleton className="h-[200px] w-full" />
+              <Skeleton className="h-[260px] w-full" />
             ) : browserData.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">데이터 없음</div>
+              <div className="h-[260px] flex items-center justify-center text-muted-foreground text-sm">데이터 없음</div>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                  <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={65}
+                    label={renderPieLabel} labelLine={false}>
                     {browserData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value: number, name: string) => [`${value}명`, name]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -150,17 +165,17 @@ export default function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Skeleton className="h-[200px] w-full" />
+              <Skeleton className="h-[260px] w-full" />
             ) : osData.length === 0 ? (
-              <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">데이터 없음</div>
+              <div className="h-[260px] flex items-center justify-center text-muted-foreground text-sm">데이터 없음</div>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={osData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                  <Pie data={osData} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={65}
+                    label={renderPieLabel} labelLine={false}>
                     {osData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value: number, name: string) => [`${value}명`, name]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
