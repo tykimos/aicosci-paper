@@ -18,6 +18,7 @@ import {
   LogOut,
   Home,
   Loader2,
+  Network,
 } from 'lucide-react';
 
 const navItems = [
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/admin/surveys', label: '설문 결과', icon: ClipboardList },
   { href: '/admin/chats', label: '채팅', icon: MessageSquare },
   { href: '/admin/users', label: '참여자', icon: Users },
+  { href: '/admin/ontology', label: '온톨로지 분석', icon: Network },
   { href: '/admin/export', label: '데이터 다운로드', icon: Download },
   { href: '/admin/settings', label: '설정', icon: Settings },
 ];
