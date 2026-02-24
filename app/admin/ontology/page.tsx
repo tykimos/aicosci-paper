@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import TopicLandscapeTab from './topic-landscape-tab';
 import UserBehaviorTab from './user-behavior-tab';
 import NavigationFlowsTab from './navigation-flows-tab';
@@ -221,6 +222,16 @@ export interface InsightsData {
 }
 
 // ---------------------------------------------------------------------------
+// Progress log type
+// ---------------------------------------------------------------------------
+
+interface ProgressLog {
+  time: string;
+  message: string;
+  status: 'loading' | 'done' | 'error';
+}
+
+// ---------------------------------------------------------------------------
 // Main Page Component
 // ---------------------------------------------------------------------------
 
@@ -258,108 +269,211 @@ export default function OntologyPage() {
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
 
+  // Progress log state
+  const [progressLogs, setProgressLogs] = useState<ProgressLog[]>([]);
+
+  const addLog = (message: string, status: 'loading' | 'done' | 'error' = 'loading') => {
+    const now = new Date();
+    const time = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setProgressLogs(prev => [...prev, { time, message, status }]);
+  };
+
+  // Topics tab
   useEffect(() => {
-    // Topics tab: fetch both /topics and /similarity
     if (activeTab === 'topics' && !topicsData && !topicsLoading) {
       setTopicsLoading(true);
       setTopicsError(null);
-      Promise.all([
-        fetch('/api/v1/admin/ontology/topics').then((r) => r.json()),
-        fetch('/api/v1/admin/ontology/similarity').then((r) => r.json()),
-      ])
-        .then(([topicsRes, simRes]) => {
-          if (topicsRes.success) setTopicsData(topicsRes.data);
-          else setTopicsError('데이터를 불러오지 못했습니다.');
-          if (simRes.success) setSimilarityData(simRes.data);
-        })
-        .catch(() => setTopicsError('네트워크 오류가 발생했습니다.'))
-        .finally(() => setTopicsLoading(false));
-    }
+      setProgressLogs([]);
 
-    // Behavior tab
+      const loadTopics = async () => {
+        try {
+          addLog('주제 분석 데이터를 요청합니다...');
+          addLog('논문 태그 데이터 로딩 중...');
+          const topicsRes = await fetch('/api/v1/admin/ontology/topics').then(r => r.json());
+          if (topicsRes.success) {
+            setTopicsData(topicsRes.data);
+            addLog(`태그 공동출현 매트릭스 로딩 완료 (${topicsRes.data.co_occurrence.tags.length}개 태그)`, 'done');
+            addLog(`태그별 참여 지표 로딩 완료 (${topicsRes.data.tag_rankings.length}개 항목)`, 'done');
+          } else {
+            addLog('주제 분석 데이터 로딩 실패', 'error');
+            setTopicsError('데이터를 불러오지 못했습니다.');
+          }
+
+          addLog('논문 유사도 분석 중 (임베딩 비교)...');
+          const simRes = await fetch('/api/v1/admin/ontology/similarity').then(r => r.json());
+          if (simRes.success) {
+            setSimilarityData(simRes.data);
+            addLog(`유사도 분석 완료 (${simRes.data.total_papers_with_embeddings}개 논문, ${simRes.data.clusters.length}개 클러스터)`, 'done');
+          } else {
+            addLog('유사도 분석 실패', 'error');
+          }
+          addLog('주제 분석 탭 로딩 완료!', 'done');
+        } catch {
+          addLog('네트워크 오류가 발생했습니다.', 'error');
+          setTopicsError('네트워크 오류가 발생했습니다.');
+        } finally {
+          setTopicsLoading(false);
+        }
+      };
+      loadTopics();
+    }
+  }, [activeTab, topicsData, topicsLoading]);
+
+  // Behavior tab
+  useEffect(() => {
     if (activeTab === 'behavior' && !behaviorData && !behaviorLoading) {
       setBehaviorLoading(true);
       setBehaviorError(null);
-      fetch('/api/v1/admin/ontology/behavior')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) setBehaviorData(res.data);
-          else setBehaviorError('데이터를 불러오지 못했습니다.');
-        })
-        .catch(() => setBehaviorError('네트워크 오류가 발생했습니다.'))
-        .finally(() => setBehaviorLoading(false));
-    }
+      setProgressLogs([]);
 
-    // Flows tab
+      const loadBehavior = async () => {
+        try {
+          addLog('세션 데이터 로딩 중...');
+          addLog('사용자 행동 클러스터링 분석 중...');
+          const res = await fetch('/api/v1/admin/ontology/behavior').then(r => r.json());
+          if (res.success) {
+            setBehaviorData(res.data);
+            addLog(`사용자 행동 분석 완료 (${res.data.total_sessions}개 세션, ${res.data.clusters.length}개 클러스터)`, 'done');
+            addLog('사용자 행동 탭 로딩 완료!', 'done');
+          } else {
+            addLog('사용자 행동 데이터 로딩 실패', 'error');
+            setBehaviorError('데이터를 불러오지 못했습니다.');
+          }
+        } catch {
+          addLog('네트워크 오류가 발생했습니다.', 'error');
+          setBehaviorError('네트워크 오류가 발생했습니다.');
+        } finally {
+          setBehaviorLoading(false);
+        }
+      };
+      loadBehavior();
+    }
+  }, [activeTab, behaviorData, behaviorLoading]);
+
+  // Flows tab
+  useEffect(() => {
     if (activeTab === 'flows' && !flowsData && !flowsLoading) {
       setFlowsLoading(true);
       setFlowsError(null);
-      fetch('/api/v1/admin/ontology/flows')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) setFlowsData(res.data);
-          else setFlowsError('데이터를 불러오지 못했습니다.');
-        })
-        .catch(() => setFlowsError('네트워크 오류가 발생했습니다.'))
-        .finally(() => setFlowsLoading(false));
-    }
+      setProgressLogs([]);
 
-    // Quality matrix tab
+      const loadFlows = async () => {
+        try {
+          addLog('읽기 진행 데이터 로딩 중...');
+          addLog('논문 전이 매트릭스 계산 중...');
+          const res = await fetch('/api/v1/admin/ontology/flows').then(r => r.json());
+          if (res.success) {
+            setFlowsData(res.data);
+            addLog(`탐색 흐름 분석 완료 (${res.data.gateway_papers.length}개 게이트웨이 논문)`, 'done');
+            addLog('탐색 흐름 탭 로딩 완료!', 'done');
+          } else {
+            addLog('탐색 흐름 데이터 로딩 실패', 'error');
+            setFlowsError('데이터를 불러오지 못했습니다.');
+          }
+        } catch {
+          addLog('네트워크 오류가 발생했습니다.', 'error');
+          setFlowsError('네트워크 오류가 발생했습니다.');
+        } finally {
+          setFlowsLoading(false);
+        }
+      };
+      loadFlows();
+    }
+  }, [activeTab, flowsData, flowsLoading]);
+
+  // Quality matrix tab
+  useEffect(() => {
     if (activeTab === 'quality' && !qualityData && !qualityLoading) {
       setQualityLoading(true);
       setQualityError(null);
-      fetch('/api/v1/admin/ontology/quality-matrix')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) setQualityData(res.data);
-          else setQualityError('데이터를 불러오지 못했습니다.');
-        })
-        .catch(() => setQualityError('네트워크 오류가 발생했습니다.'))
-        .finally(() => setQualityLoading(false));
-    }
+      setProgressLogs([]);
 
-    // Anomaly tab
+      const loadQuality = async () => {
+        try {
+          addLog('설문 응답 데이터 로딩 중...');
+          addLog('품질-참여 점수 계산 중...');
+          const res = await fetch('/api/v1/admin/ontology/quality-matrix').then(r => r.json());
+          if (res.success) {
+            setQualityData(res.data);
+            addLog(`품질-참여 매트릭스 완료 (${res.data.papers.length}개 논문 분석)`, 'done');
+            addLog('품질 매트릭스 탭 로딩 완료!', 'done');
+          } else {
+            addLog('품질 매트릭스 데이터 로딩 실패', 'error');
+            setQualityError('데이터를 불러오지 못했습니다.');
+          }
+        } catch {
+          addLog('네트워크 오류가 발생했습니다.', 'error');
+          setQualityError('네트워크 오류가 발생했습니다.');
+        } finally {
+          setQualityLoading(false);
+        }
+      };
+      loadQuality();
+    }
+  }, [activeTab, qualityData, qualityLoading]);
+
+  // Anomaly tab
+  useEffect(() => {
     if (activeTab === 'anomalies' && !anomalyData && !anomalyLoading) {
       setAnomalyLoading(true);
       setAnomalyError(null);
-      fetch('/api/v1/admin/ontology/anomalies')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) setAnomalyData(res.data);
-          else setAnomalyError('데이터를 불러오지 못했습니다.');
-        })
-        .catch(() => setAnomalyError('네트워크 오류가 발생했습니다.'))
-        .finally(() => setAnomalyLoading(false));
-    }
+      setProgressLogs([]);
 
-    // Insights tab
+      const loadAnomalies = async () => {
+        try {
+          addLog('세션/설문/읽기 데이터 로딩 중...');
+          addLog('8개 규칙 이상 탐지 실행 중...');
+          const res = await fetch('/api/v1/admin/ontology/anomalies').then(r => r.json());
+          if (res.success) {
+            setAnomalyData(res.data);
+            addLog(`이상 탐지 완료 (${res.data.summary.total_flagged_sessions}개 세션 플래그)`, 'done');
+            addLog('이상 탐지 탭 로딩 완료!', 'done');
+          } else {
+            addLog('이상 탐지 데이터 로딩 실패', 'error');
+            setAnomalyError('데이터를 불러오지 못했습니다.');
+          }
+        } catch {
+          addLog('네트워크 오류가 발생했습니다.', 'error');
+          setAnomalyError('네트워크 오류가 발생했습니다.');
+        } finally {
+          setAnomalyLoading(false);
+        }
+      };
+      loadAnomalies();
+    }
+  }, [activeTab, anomalyData, anomalyLoading]);
+
+  // Insights tab
+  useEffect(() => {
     if (activeTab === 'insights' && !insightsData && !insightsLoading) {
       setInsightsLoading(true);
       setInsightsError(null);
-      fetch('/api/v1/admin/ontology/insights')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) setInsightsData(res.data);
-          else setInsightsError('데이터를 불러오지 못했습니다.');
-        })
-        .catch(() => setInsightsError('네트워크 오류가 발생했습니다.'))
-        .finally(() => setInsightsLoading(false));
+      setProgressLogs([]);
+
+      const loadInsights = async () => {
+        try {
+          addLog('종합 인사이트 생성 중...');
+          const res = await fetch('/api/v1/admin/ontology/insights').then(r => r.json());
+          if (res.success) {
+            setInsightsData(res.data);
+            addLog(`인사이트 분석 완료 (${res.data.insights.length}개 인사이트)`, 'done');
+            addLog('인사이트 탭 로딩 완료!', 'done');
+          } else {
+            addLog('인사이트 데이터 로딩 실패', 'error');
+            setInsightsError('데이터를 불러오지 못했습니다.');
+          }
+        } catch {
+          addLog('네트워크 오류가 발생했습니다.', 'error');
+          setInsightsError('네트워크 오류가 발생했습니다.');
+        } finally {
+          setInsightsLoading(false);
+        }
+      };
+      loadInsights();
     }
-  }, [
-    activeTab,
-    topicsData,
-    topicsLoading,
-    behaviorData,
-    behaviorLoading,
-    flowsData,
-    flowsLoading,
-    qualityData,
-    qualityLoading,
-    anomalyData,
-    anomalyLoading,
-    insightsData,
-    insightsLoading,
-  ]);
+  }, [activeTab, insightsData, insightsLoading]);
+
+  const isAnyLoading = topicsLoading || behaviorLoading || flowsLoading || qualityLoading || anomalyLoading || insightsLoading;
 
   return (
     <div className="space-y-6">
@@ -379,6 +493,32 @@ export default function OntologyPage() {
           <TabsTrigger value="anomalies">이상 탐지</TabsTrigger>
           <TabsTrigger value="insights">인사이트</TabsTrigger>
         </TabsList>
+
+        {/* Progress Log */}
+        {isAnyLoading && progressLogs.length > 0 && (
+          <Card className="border-green-900/30 bg-gray-950 mt-4">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs text-green-400 font-mono">분석 진행 중...</span>
+              </div>
+              <div className="font-mono text-xs space-y-1 max-h-[200px] overflow-y-auto">
+                {progressLogs.map((log, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-gray-500 shrink-0">[{log.time}]</span>
+                    <span className={
+                      log.status === 'done' ? 'text-green-400' :
+                      log.status === 'error' ? 'text-red-400' :
+                      'text-yellow-300'
+                    }>
+                      {log.status === 'done' ? '✓' : log.status === 'error' ? '✗' : '→'} {log.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <TabsContent value="topics">
           <TopicLandscapeTab
